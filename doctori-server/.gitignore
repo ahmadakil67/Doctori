@@ -3,4 +3,7 @@ dist
 .env
 .env.test
 
+uploads/*
+!uploads/.gitkeep
+
 /src/generated/prisma
