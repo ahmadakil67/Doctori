@@ -18,7 +18,24 @@ const insertIntoDB = catchAsync(async (req: Request & { user?: IJWTPayload }, re
     })
 });
 
+const getMySchedules = catchAsync(
+    async (req: Request & { user?: IJWTPayload }, res: Response) => {
+
+        const result =
+            await DoctorScheduleService.getMySchedules(
+                req.user as IJWTPayload
+            );
+
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: "Doctor schedules retrieved successfully!",
+            data: result
+        });
+    }
+);
 
 export const DoctorScheduleController = {
     insertIntoDB,
+    getMySchedules
 }

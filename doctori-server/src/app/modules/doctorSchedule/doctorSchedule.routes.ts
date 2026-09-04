@@ -13,5 +13,10 @@ router.post(
     validateRequest(DoctorScheduleValidation.createDoctorScheduleValidationSchema),
     DoctorScheduleController.insertIntoDB
 )
+router.get(
+    "/",
+    auth(UserRole.DOCTOR),
+    DoctorScheduleController.getMySchedules
+);
 
 export const doctorScheduleRoutes = router;
