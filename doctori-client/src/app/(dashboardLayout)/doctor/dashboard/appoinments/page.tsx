@@ -163,7 +163,7 @@ const DoctorAppointmentsPage = async () => {
                     <AppointmentStatusSelect
                       appointmentId={appointment.id}
                       currentStatus={appointment.status}
-                    />
+                    /> 
 
                     <span
                       className={

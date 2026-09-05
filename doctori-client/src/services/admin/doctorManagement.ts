@@ -1,160 +1,278 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use server"
+"use server";
 
 import { serverFetch } from "@/lib/server-fetch";
 import { zodValidator } from "@/lib/zodValidator";
 import { IDoctor } from "@/types/doctor.interface";
-import { createDoctorZodSchema, updateDoctorZodSchema } from "@/zod/doctors.validation";
-
+import {
+  createDoctorZodSchema,
+  updateDoctorZodSchema,
+} from "@/zod/doctors.validation";
 
 export async function createDoctor(_prevState: any, formData: FormData) {
-    try {
-        const payload: IDoctor = {
-            name: formData.get("name") as string,
-            email: formData.get("email") as string,
-            contactNumber: formData.get("contactNumber") as string,
-            address: formData.get("address") as string,
-            registrationNumber: formData.get("registrationNumber") as string,
-            experience: Number(formData.get("experience") as string
-            ),
-            gender: formData.get("gender") as "MALE" | "FEMALE",
-            appointmentFee: Number(formData.get("appointmentFee") as string),
-            qualification: formData.get("qualification") as string,
-            currentWorkingPlace: formData.get("currentWorkingPlace") as string,
-            designation: formData.get("designation") as string,
-            password: formData.get("password") as string,
-        }
-        if (zodValidator(payload, createDoctorZodSchema).success === false) {
-            return zodValidator(payload, createDoctorZodSchema);
-        }
-
-        const validatedPayload = zodValidator(payload, createDoctorZodSchema).data;
-
-        if (!validatedPayload) {
-            throw new Error("Invalid payload");
-        }
-
-        const newPayload = {
-            password: validatedPayload.password,
-            doctor: {
-                name: validatedPayload.name,
-                email: validatedPayload.email,
-                contactNumber: validatedPayload.contactNumber,
-                address: validatedPayload.address,
-                registrationNumber: validatedPayload.registrationNumber,
-                experience: validatedPayload.experience,
-                gender: validatedPayload.gender,
-                appointmentFee: validatedPayload.appointmentFee,
-                qualification: validatedPayload.qualification,
-                currentWorkingPlace: validatedPayload.currentWorkingPlace,
-                designation: validatedPayload.designation,
-            }
-        }
-        const newFormData = new FormData()
-        newFormData.append("data", JSON.stringify(newPayload))
-
-        if (formData.get("file")) {
-            newFormData.append("file", formData.get("file") as Blob)
-        }
-
-        const response = await serverFetch.post("/user/create-doctor", {
-            body: newFormData,
-        })
-
-        const result = await response.json();
-
-
-        return result;
-    } catch (error: any) {
-        console.log(error);
-        return { success: false, message: `${process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'}` }
-
+  const specialties = JSON.parse(
+    (formData.get("specialties") as string) || "[]",
+  );
+  try {
+    const payload: IDoctor = {
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      contactNumber: formData.get("contactNumber") as string,
+      address: formData.get("address") as string,
+      registrationNumber: formData.get("registrationNumber") as string,
+      experience: Number(formData.get("experience") as string),
+      gender: formData.get("gender") as "MALE" | "FEMALE",
+      appointmentFee: Number(formData.get("appointmentFee") as string),
+      qualification: formData.get("qualification") as string,
+      currentWorkingPlace: formData.get("currentWorkingPlace") as string,
+      designation: formData.get("designation") as string,
+      password: formData.get("password") as string,
+    };
+    if (zodValidator(payload, createDoctorZodSchema).success === false) {
+      return zodValidator(payload, createDoctorZodSchema);
     }
+
+    const validatedPayload = zodValidator(payload, createDoctorZodSchema).data;
+
+    if (!validatedPayload) {
+      throw new Error("Invalid payload");
+    }
+
+const newPayload = {
+  password: validatedPayload.password,
+
+  specialties,
+
+  doctor: {
+    name: validatedPayload.name,
+    email: validatedPayload.email,
+    contactNumber: validatedPayload.contactNumber,
+    address: validatedPayload.address,
+    registrationNumber: validatedPayload.registrationNumber,
+    experience: validatedPayload.experience,
+    gender: validatedPayload.gender,
+    appointmentFee: validatedPayload.appointmentFee,
+    qualification: validatedPayload.qualification,
+    currentWorkingPlace: validatedPayload.currentWorkingPlace,
+    designation: validatedPayload.designation,
+  },
+};
+    const newFormData = new FormData();
+    newFormData.append("data", JSON.stringify(newPayload));
+
+    if (formData.get("file")) {
+      newFormData.append("file", formData.get("file") as Blob);
+    }
+
+    const response = await serverFetch.post("/user/create-doctor", {
+      body: newFormData,
+    });
+
+    const result = await response.json();
+
+    return result;
+  } catch (error: any) {
+    console.log(error);
+    return {
+      success: false,
+      message: `${process.env.NODE_ENV === "development" ? error.message : "Something went wrong"}`,
+    };
+  }
 }
 
 export async function getDoctors(queryString?: string) {
-    try {
-        const response = await serverFetch.get(`/doctors${queryString ? `?${queryString}` : ""}`);
-        const result = await response.json();
-        return result;
-    } catch (error: any) {
-        console.log(error);
-        return {
-            success: false,
-            message: `${process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'}`
-        };
-    }
+  try {
+    const response = await serverFetch.get(
+      `/doctors${queryString ? `?${queryString}` : ""}`,
+    );
+    const result = await response.json();
+    return result;
+  } catch (error: any) {
+    console.log(error);
+    return {
+      success: false,
+      message: `${process.env.NODE_ENV === "development" ? error.message : "Something went wrong"}`,
+    };
+  }
 }
 
 export async function getDoctorById(id: string) {
     try {
-        const response = await serverFetch.get(`/doctor/${id}`)
+        const response = await serverFetch.get(`/doctors/${id}`);
+
         const result = await response.json();
+
         return result;
     } catch (error: any) {
         console.log(error);
+
         return {
             success: false,
-            message: `${process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'}`
+            message:
+                process.env.NODE_ENV === "development"
+                    ? error.message
+                    : "Something went wrong",
         };
     }
 }
 
-export async function updateDoctor(id: string, _prevState: any, formData: FormData) {
+export async function updateDoctor(
+    id: string,
+    _prevState: any,
+    formData: FormData
+) {
     try {
+
+        // -----------------------------------------
+        // Normal doctor fields
+        // -----------------------------------------
+
         const payload: Partial<IDoctor> = {
             name: formData.get("name") as string,
             contactNumber: formData.get("contactNumber") as string,
             address: formData.get("address") as string,
             registrationNumber: formData.get("registrationNumber") as string,
-            experience: Number(formData.get("experience") as string),
-            gender: formData.get("gender") as "MALE" | "FEMALE",
-            appointmentFee: Number(formData.get("appointmentFee") as string),
-            qualification: formData.get("qualification") as string,
-            currentWorkingPlace: formData.get("currentWorkingPlace") as string,
-            designation: formData.get("designation") as string,
+            experience: Number(
+                formData.get("experience") as string
+            ),
+            gender: formData.get("gender") as
+                | "MALE"
+                | "FEMALE",
+            appointmentFee: Number(
+                formData.get("appointmentFee") as string
+            ),
+            qualification: formData.get(
+                "qualification"
+            ) as string,
+            currentWorkingPlace: formData.get(
+                "currentWorkingPlace"
+            ) as string,
+            designation: formData.get(
+                "designation"
+            ) as string,
+        };
+
+        // -----------------------------------------
+        // Validate normal doctor fields
+        // -----------------------------------------
+
+        const validation = zodValidator(
+            payload,
+            updateDoctorZodSchema
+        );
+
+        if (!validation.success) {
+            return validation;
         }
-        const validatedPayload = zodValidator(payload, updateDoctorZodSchema).data;
 
-        const response = await serverFetch.patch(`/doctors/${id}`, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(validatedPayload),
-        })
+        const validatedPayload = validation.data;
+
+        if (!validatedPayload) {
+            throw new Error("Invalid payload");
+        }
+
+        // -----------------------------------------
+        // Specialty changes from hidden inputs
+        // -----------------------------------------
+
+        const newSpecialtyIds: string[] =
+            JSON.parse(
+                (formData.get("specialties") as string) ||
+                    "[]"
+            );
+
+        const removedSpecialtyIds: string[] =
+            JSON.parse(
+                (formData.get(
+                    "removeSpecialties"
+                ) as string) || "[]"
+            );
+
+        // Backend already expects this structure
+        const specialties = [
+            ...newSpecialtyIds.map((specialtyId) => ({
+                specialtyId,
+                isDeleted: false,
+            })),
+
+            ...removedSpecialtyIds.map(
+                (specialtyId) => ({
+                    specialtyId,
+                    isDeleted: true,
+                })
+            ),
+        ];
+
+        // -----------------------------------------
+        // Final payload
+        // -----------------------------------------
+
+        const updatePayload = {
+            ...validatedPayload,
+
+            ...(specialties.length > 0 && {
+                specialties,
+            }),
+        };
+
+        // -----------------------------------------
+        // API request
+        // -----------------------------------------
+
+        const response = await serverFetch.patch(
+            `/doctors/${id}`,
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+
+                body: JSON.stringify(updatePayload),
+            }
+        );
+
         const result = await response.json();
-        return result;
-    } catch (error: any) {
-        console.log(error);
-        return { success: false, message: `${process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'}` }
-    }
-}
-
-export async function softDeleteDoctor(id: string) {
-    try {
-        const response = await serverFetch.delete(`/doctor/soft/${id}`)
-        const result = await response.json();
 
         return result;
+
     } catch (error: any) {
+
         console.log(error);
+
         return {
             success: false,
-            message: `${process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'}`
+            message: `${
+                process.env.NODE_ENV === "development"
+                    ? error.message
+                    : "Something went wrong"
+            }`,
         };
     }
+}
+export async function softDeleteDoctor(id: string) {
+  try {
+    const response = await serverFetch.delete(`/doctor/soft/${id}`);
+    const result = await response.json();
+
+    return result;
+  } catch (error: any) {
+    console.log(error);
+    return {
+      success: false,
+      message: `${process.env.NODE_ENV === "development" ? error.message : "Something went wrong"}`,
+    };
+  }
 }
 export async function deleteDoctor(id: string) {
-    try {
-        const response = await serverFetch.delete(`/doctor/${id}`)
-        const result = await response.json();
+  try {
+    const response = await serverFetch.delete(`/doctor/${id}`);
+    const result = await response.json();
 
-        return result;
-    } catch (error: any) {
-        console.log(error);
-        return {
-            success: false,
-            message: `${process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'}`
-        };
-    }
+    return result;
+  } catch (error: any) {
+    console.log(error);
+    return {
+      success: false,
+      message: `${process.env.NODE_ENV === "development" ? error.message : "Something went wrong"}`,
+    };
+  }
 }

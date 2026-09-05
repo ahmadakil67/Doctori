@@ -31,13 +31,32 @@ export default function AIDoctorSuggestion() {
     setShowSuggestion(false);
 
     try {
-      //   const response = await getDoctorSuggestion(symptoms);
-      //   if (response.success) {
-      //     setSuggestion(response.data || "No suggestion available");
-      //     setShowSuggestion(true);
-      //   } else {
-      //     toast.error(response.message || "Failed to get AI suggestion");
-      //   }
+      const response = await fetch(
+        "http://localhost:5000/api/v1/doctors/suggestion",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            symptoms,
+          }),
+        },
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSuggestion(
+          typeof result.data === "string"
+            ? result.data
+            : JSON.stringify(result.data, null, 2),
+        );
+
+        setShowSuggestion(true);
+      } else {
+        toast.error(result.message || "Failed to get AI suggestion");
+      }
     } catch (error) {
       console.error("Error getting AI suggestion:", error);
       toast.error("Failed to get AI suggestion");

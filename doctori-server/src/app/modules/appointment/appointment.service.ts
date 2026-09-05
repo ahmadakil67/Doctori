@@ -91,8 +91,8 @@ const createAppointment = async (
         appointmentId: appointmentData.id,
         paymentId: paymentData.id,
       },
-      success_url: `${config.client_url}/dashboard/my-appointments?payment=success`,
-      cancel_url: `${config.client_url}/consultation?payment=cancelled`,
+      success_url: `${process.env.CLIENT_URL}/dashboard/my-appointments?payment=success`,
+      cancel_url: `${process.env.CLIENT_URL}/consultation?payment=cancelled`,
     });
 
     console.log("Stripe session created:", session);

@@ -1,6 +1,7 @@
 import { getMyAppointments } from "@/services/patient/myAppointments";
 import { CalendarDays, Clock, Stethoscope, CreditCard } from "lucide-react";
 import { format } from "date-fns";
+import ReviewButton from "@/components/modules/Patient/ReviewButton";
 
 type Appointment = {
   id: string;
@@ -38,6 +39,8 @@ type Appointment = {
 
   review?: {
     id: string;
+    rating: number;
+    comment?: string | null;
   } | null;
 };
 
@@ -55,9 +58,7 @@ const statusClass = (status: string) => {
 };
 
 const paymentClass = (status: string) =>
-  status === "PAID"
-    ? "bg-green-100 text-green-700"
-    : "bg-red-100 text-red-700";
+  status === "PAID" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700";
 
 const MyAppointmentsPage = async () => {
   const result = await getMyAppointments();
@@ -111,7 +112,6 @@ const MyAppointmentsPage = async () => {
               className="border rounded-xl p-5 bg-background"
             >
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-
                 {/* Doctor */}
                 <div className="flex items-center gap-4">
                   {appointment.doctor?.profilePhoto ? (
@@ -157,12 +157,9 @@ const MyAppointmentsPage = async () => {
                     <Clock className="h-4 w-4" />
 
                     <span>
-                      {startTime
-                        ? format(startTime, "h:mm a")
-                        : "N/A"}
+                      {startTime ? format(startTime, "h:mm a") : "N/A"}
 
-                      {endTime &&
-                        ` - ${format(endTime, "h:mm a")}`}
+                      {endTime && ` - ${format(endTime, "h:mm a")}`}
                     </span>
                   </div>
                 </div>
@@ -183,7 +180,7 @@ const MyAppointmentsPage = async () => {
                   <div className="flex flex-wrap gap-2">
                     <span
                       className={`text-xs px-3 py-1 rounded-full font-medium ${statusClass(
-                        appointment.status
+                        appointment.status,
                       )}`}
                     >
                       {appointment.status}
@@ -191,7 +188,7 @@ const MyAppointmentsPage = async () => {
 
                     <span
                       className={`text-xs px-3 py-1 rounded-full font-medium ${paymentClass(
-                        appointment.paymentStatus
+                        appointment.paymentStatus,
                       )}`}
                     >
                       {appointment.paymentStatus}
@@ -201,11 +198,28 @@ const MyAppointmentsPage = async () => {
               </div>
 
               {/* Appointment ID */}
-              <div className="border-t mt-4 pt-3">
-                <p className="text-xs text-muted-foreground">
-                  Appointment ID: {appointment.id}
-                </p>
-              </div>
+              {appointment.status === "COMPLETED" && (
+                <div className="border-t mt-4 pt-4">
+                  {appointment.review ? (
+                    <div className="text-sm">
+                      <span className="font-medium">
+                        Your Rating: {appointment.review.rating}/5
+                      </span>
+
+                      {appointment.review.comment && (
+                        <p className="text-muted-foreground mt-1">
+                          {appointment.review.comment}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <ReviewButton
+                      appointmentId={appointment.id}
+                      doctorName={appointment.doctor?.name || "Doctor"}
+                    />
+                  )}
+                </div>
+              )}
             </div>
           );
         })}

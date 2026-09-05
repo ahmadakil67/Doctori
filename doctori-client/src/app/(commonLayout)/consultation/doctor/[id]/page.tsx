@@ -12,7 +12,7 @@ const DoctorDetailPage = async ({
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       <DoctorProfileContent doctor={result.data} />
-      <DoctorReviews doctorId={id} />
+      <DoctorReviews reviews={result.data?.reviews || []} />
     </div>
   );
 };

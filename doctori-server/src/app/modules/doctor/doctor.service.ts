@@ -223,57 +223,133 @@ const softDelete = async (id: string): Promise<Doctor> => {
 };
 
 const getAISuggestions = async (payload: { symptoms: string }) => {
-  if (!(payload && payload.symptoms)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "symptoms is required!");
+  if (!payload?.symptoms) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "symptoms is required!"
+    );
   }
 
+  // -----------------------------------
+  // Get doctors
+  // -----------------------------------
+
   const doctors = await prisma.doctor.findMany({
-    where: { isDeleted: false },
+    where: {
+      isDeleted: false,
+    },
+
     include: {
       doctorSpecialties: {
         include: {
           specialities: true,
         },
       },
-      doctorSchedules: {
-        include: {
-          schedule: true,
-        },
-      },
     },
   });
 
   console.log("doctors data loaded.......\n");
+
+  // -----------------------------------
+  // Send only necessary data to AI
+  // -----------------------------------
+
+  const doctorDataForAI = doctors.map((doctor) => ({
+    id: doctor.id,
+    name: doctor.name,
+    designation: doctor.designation,
+    experience: doctor.experience,
+    appointmentFee: doctor.appointmentFee,
+    averageRating: doctor.averageRating,
+
+    specialties: doctor.doctorSpecialties.map(
+      (item) => item.specialities.title
+    ),
+  }));
+
+  // -----------------------------------
+  // Prompt
+  // -----------------------------------
+
   const prompt = `
-You are a medical assistant AI. Based on the patient's symptoms, suggest the top 3 most suitable doctors.
-Each doctor has specialties and years of experience.
-Only suggest doctors who are relevant to the given symptoms.
+You are a doctor recommendation assistant.
 
-Symptoms: ${payload.symptoms}
+Patient symptoms:
+"${payload.symptoms}"
 
-Here is the doctor list (in JSON):
-${JSON.stringify(doctors, null, 2)}
+Available doctors:
+${JSON.stringify(doctorDataForAI, null, 2)}
 
-Return your response in JSON format with full individual doctor data. 
+Based only on the symptoms and doctor specialties,
+recommend up to 3 suitable doctors.
+
+Return ONLY a valid JSON array.
+
+For every recommended doctor return exactly:
+
+[
+  {
+    "id": "doctor id",
+    "name": "doctor name",
+    "designation": "doctor designation",
+    "experience": 5,
+    "appointmentFee": 500,
+    "averageRating": 4.5,
+    "specialty": "Cardiology"
+  }
+]
+
+Rules:
+- Only recommend doctors whose specialty is relevant.
+- Do not invent doctors.
+- Use only doctors from the provided list.
+- If no doctor matches, return [].
+- Do not include markdown.
+- Do not include explanations.
 `;
 
   console.log("analyzing......\n");
+
+  // -----------------------------------
+  // AI Request
+  // -----------------------------------
+
   const completion = await openai.chat.completions.create({
-    model: "z-ai/glm-4.5-air:free",
+    model: "openrouter/free",
+
     messages: [
       {
         role: "system",
         content:
-          "You are a helpful AI medical assistant that provides doctor suggestions.",
+          "You are a medical doctor recommendation assistant. Return only valid JSON.",
       },
       {
         role: "user",
         content: prompt,
       },
     ],
+
+    max_tokens: 600,
+    temperature: 0.2,
   });
 
-  const result = await extractJsonFromMessage(completion.choices[0].message);
+  // -----------------------------------
+  // Debug
+  // -----------------------------------
+
+  console.log(
+    "AI RAW RESPONSE:",
+    completion.choices[0].message.content
+  );
+
+  // -----------------------------------
+  // Parse JSON
+  // -----------------------------------
+
+  const result = await extractJsonFromMessage(
+    completion.choices[0].message
+  );
+
   return result;
 };
 

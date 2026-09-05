@@ -65,6 +65,44 @@ const DoctorProfileContent = ({ doctor }: DoctorProfileContentProps) => {
                   {doctor.designation || "No designation"}
                 </p>
               </div>
+
+              <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                <p>
+                  <strong>Specialties:</strong>{" "}
+                  {doctor.doctorSpecialties
+                    ?.map((item) => item.specialities?.title)
+                    .filter(Boolean)
+                    .join(", ") || "N/A"}
+                </p>
+
+                <p>
+                  <strong>Experience:</strong> {doctor.experience ?? 0} years
+                </p>
+
+                <p>
+                  <strong>Qualification:</strong> {doctor.qualification}
+                </p>
+
+                <p>
+                  <strong>Consultation Fee:</strong> BDT {doctor.appointmentFee}
+                </p>
+
+                <p>
+                  <strong>Hospital:</strong> {doctor.currentWorkingPlace}
+                </p>
+
+                <p>
+                  <strong>Rating:</strong> {doctor.averageRating ?? 0}/5
+                </p>
+
+                <p>
+                  <strong>Contact:</strong> {doctor.contactNumber}
+                </p>
+
+                <p>
+                  <strong>Address:</strong> {doctor.address || "N/A"}
+                </p>
+              </div>
             </div>
           </div>
         </CardContent>
