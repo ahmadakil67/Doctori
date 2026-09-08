@@ -19,9 +19,9 @@ const auth = (...roles: string[]) => {
 
             req.user = verifyUser;
 
-            console.log("verifyUser:", verifyUser);
-            console.log("required roles:", roles);
-            console.log("user role:", verifyUser.role);
+            // console.log("verifyUser:", verifyUser);
+            // console.log("required roles:", roles);
+            // console.log("user role:", verifyUser.role);
 
             if (roles.length && !roles.includes(verifyUser.role)) {
                 throw new ApiError(httpStatus.UNAUTHORIZED, "You are not authorized!")

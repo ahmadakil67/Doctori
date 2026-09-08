@@ -248,7 +248,7 @@ const getAISuggestions = async (payload: { symptoms: string }) => {
     },
   });
 
-  console.log("doctors data loaded.......\n");
+  // console.log("doctors data loaded.......\n");
 
   // -----------------------------------
   // Send only necessary data to AI
@@ -308,7 +308,7 @@ Rules:
 - Do not include explanations.
 `;
 
-  console.log("analyzing......\n");
+  // console.log("analyzing......\n");
 
   // -----------------------------------
   // AI Request

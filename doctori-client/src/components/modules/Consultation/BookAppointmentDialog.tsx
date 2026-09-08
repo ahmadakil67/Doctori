@@ -64,13 +64,18 @@ export default function BookAppointmentDialog({
     try {
       setIsBooking(true);
       setErrorMessage("");
+      const doctorId = doctor.id;
+
+      if (!doctorId) {
+        throw new Error("Doctor information is unavailable.");
+      }
 
       const result = await createAppointment({
-        doctorId: doctor.id,
+        doctorId,
         scheduleId: selectedSchedule.scheduleId,
       });
 
-      console.log("Appointment result:", result);
+      // console.log("Appointment result:", result);
 
       if (!result?.success) {
         setErrorMessage(result?.message || "Failed to book appointment.");

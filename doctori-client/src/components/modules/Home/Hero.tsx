@@ -25,13 +25,16 @@ interface RecommendedDoctor {
   specialty: string;
 }
 
+const API_URL =
+  process.env.NEXT_PUBLIC_BASE_API_URL || "http://localhost:5000/api/v1";
+
 const Hero = () => {
   const [symptom, setSymptom] = useState("");
   const [isHovering, setIsHovering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [recommendations, setRecommendations] = useState<
-    RecommendedDoctor[]
-  >([]);
+  const [recommendations, setRecommendations] = useState<RecommendedDoctor[]>(
+    [],
+  );
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState("");
 
@@ -54,24 +57,21 @@ const Hero = () => {
     setHasSearched(true);
 
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/v1/doctors/suggestion",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            symptoms: symptom.trim(),
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/doctors/suggestion`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          symptoms: symptom.trim(),
+        }),
+      });
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.message || "Failed to get doctor recommendation"
+          result.message || "Failed to get doctor recommendation",
         );
       }
 
@@ -89,9 +89,7 @@ const Hero = () => {
     } catch (err) {
       console.error("AI doctor suggestion error:", err);
 
-      setError(
-        "Unable to get a recommendation right now. Please try again."
-      );
+      setError("Unable to get a recommendation right now. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -112,7 +110,6 @@ const Hero = () => {
 
           <h1 className="text-5xl font-extrabold leading-[1.15] text-slate-900 sm:text-6xl dark:text-white">
             Find the right doctor <br />
-
             <span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
               with AI precision
             </span>
@@ -180,9 +177,7 @@ const Hero = () => {
             </div>
 
             {error && (
-              <p className="mt-3 text-sm font-medium text-red-500">
-                {error}
-              </p>
+              <p className="mt-3 text-sm font-medium text-red-500">{error}</p>
             )}
 
             <div className="mt-6 flex flex-wrap items-center gap-2">
@@ -234,7 +229,6 @@ const Hero = () => {
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
                     </span>
-
                     AI Recommendation Active
                   </p>
                 </div>
@@ -277,9 +271,8 @@ const Hero = () => {
                       </p>
 
                       <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                        Describe your symptoms and Doctori will match them
-                        with suitable doctors currently available in the
-                        platform.
+                        Describe your symptoms and Doctori will match them with
+                        suitable doctors currently available in the platform.
                       </p>
                     </div>
                   </div>
@@ -321,8 +314,8 @@ const Hero = () => {
                       </h4>
 
                       <p className="mt-2 text-sm text-slate-500">
-                        Try describing your symptoms in more detail or
-                        browse all available doctors.
+                        Try describing your symptoms in more detail or browse
+                        all available doctors.
                       </p>
 
                       <Link
@@ -351,9 +344,7 @@ const Hero = () => {
 
                       <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
                         {recommendations.length}{" "}
-                        {recommendations.length === 1
-                          ? "Doctor"
-                          : "Doctors"}
+                        {recommendations.length === 1 ? "Doctor" : "Doctors"}
                       </span>
                     </div>
 
@@ -391,17 +382,13 @@ const Hero = () => {
                                 className="fill-amber-400 text-amber-400"
                               />
                               <span>
-                                {Number(
-                                  doctor.averageRating || 0
-                                ).toFixed(1)}
+                                {Number(doctor.averageRating || 0).toFixed(1)}
                               </span>
                             </div>
 
                             <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
                               <WalletCards size={14} />
-                              <span>
-                                BDT {doctor.appointmentFee}
-                              </span>
+                              <span>BDT {doctor.appointmentFee}</span>
                             </div>
                           </div>
 

@@ -49,7 +49,7 @@ router.post(
     auth(UserRole.ADMIN),
     fileUploader.upload.single('file'),
     (req: Request, res: Response, next: NextFunction) => {
-        console.log(JSON.parse(req.body.data))
+        // console.log(JSON.parse(req.body.data))
         req.body = userValidation.createDoctorValidationSchema.parse(JSON.parse(req.body.data))
         return userController.createDoctor(req, res, next)
     }

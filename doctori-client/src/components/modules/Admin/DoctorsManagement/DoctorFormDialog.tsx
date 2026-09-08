@@ -14,10 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import {
-  Field,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldLabel } from "@/components/ui/field";
 
 import { Input } from "@/components/ui/input";
 
@@ -31,10 +28,7 @@ import {
 
 import { useSpecialtySelection } from "@/hooks/specialtyHooks/useSpecialtySelection";
 
-import {
-  createDoctor,
-  updateDoctor,
-} from "@/services/admin/doctorManagement";
+import { createDoctor, updateDoctor } from "@/services/admin/doctorManagement";
 
 import { IDoctor } from "@/types/doctor.interface";
 import { ISpecialty } from "@/types/specialities.interface";
@@ -74,94 +68,44 @@ const DoctorFormDialog = ({
   doctor,
   specialities = [],
 }: IDoctorFormDialogProps) => {
-  const formRef =
-    useRef<HTMLFormElement>(
-      null
-    );
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const fileInputRef =
-    useRef<HTMLInputElement>(
-      null
-    );
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isEdit =
-    Boolean(doctor);
+  const isEdit = Boolean(doctor);
 
-  const [
-    gender,
-    setGender,
-  ] = useState<
-    "MALE" | "FEMALE"
-  >(
-    doctor?.gender ||
-      "MALE"
+  const [gender, setGender] = useState<"MALE" | "FEMALE">(
+    doctor?.gender || "MALE",
   );
 
-  const [
-    selectedFile,
-    setSelectedFile,
-  ] =
-    useState<File | null>(
-      null
-    );
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const [
-    previewImage,
-    setPreviewImage,
-  ] =
-    useState<string | null>(
-      null
-    );
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  const [
-    fileError,
-    setFileError,
-  ] =
-    useState<string | null>(
-      null
-    );
+  const [fileError, setFileError] = useState<string | null>(null);
 
-  const [
-    state,
-    formAction,
-    pending,
-  ] = useActionState(
-    isEdit
-      ? updateDoctor.bind(
-          null,
-          doctor!.id!
-        )
-      : createDoctor,
-    null
+  const [state, formAction, pending] = useActionState(
+    isEdit ? updateDoctor.bind(null, doctor!.id!) : createDoctor,
+    null,
   );
 
-  const specialtySelection =
-    useSpecialtySelection({
-      doctor,
-      isEdit,
-      open,
-    });
+  const specialtySelection = useSpecialtySelection({
+    doctor,
+    isEdit,
+    open,
+  });
 
-  const getSpecialtyTitle = (
-    id: string
-  ) =>
-    specialities.find(
-      (speciality) =>
-        speciality.id === id
-    )?.title ||
-    "Unknown";
+  const getSpecialtyTitle = (id: string) =>
+    specialities.find((speciality) => speciality.id === id)?.title || "Unknown";
 
   /* =========================================================
      FILE
   ========================================================= */
 
-  const handleFileChange = (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     setFileError(null);
 
-    const file =
-      event.target.files?.[0];
+    const file = event.target.files?.[0];
 
     if (!file) {
       setSelectedFile(null);
@@ -170,42 +114,28 @@ const DoctorFormDialog = ({
       return;
     }
 
-    if (
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
+    if (!file.type.startsWith("image/")) {
       event.target.value = "";
 
-      setFileError(
-        "Please select a valid image file."
-      );
+      setFileError("Please select a valid image file.");
 
       return;
     }
 
-    if (
-      file.size >
-      5 * 1024 * 1024
-    ) {
+    if (file.size > 5 * 1024 * 1024) {
       event.target.value = "";
 
-      setFileError(
-        "Profile photo must be smaller than 5 MB."
-      );
+      setFileError("Profile photo must be smaller than 5 MB.");
 
       return;
     }
 
     setSelectedFile(file);
 
-    const reader =
-      new FileReader();
+    const reader = new FileReader();
 
     reader.onloadend = () => {
-      setPreviewImage(
-        reader.result as string
-      );
+      setPreviewImage(reader.result as string);
     };
 
     reader.readAsDataURL(file);
@@ -221,7 +151,7 @@ const DoctorFormDialog = ({
         state.message ||
           (isEdit
             ? "Doctor updated successfully."
-            : "Doctor created successfully.")
+            : "Doctor created successfully."),
       );
 
       formRef.current?.reset();
@@ -235,53 +165,31 @@ const DoctorFormDialog = ({
       return;
     }
 
-    if (
-      state &&
-      !state.success &&
-      state.message
-    ) {
-      toast.error(
-        state.message
-      );
+    if (state && !state.success && state.message) {
+      toast.error(state.message);
 
       /*
        * Restore selected file because
        * browser may clear file inputs
        * after a server action.
        */
-      if (
-        selectedFile &&
-        fileInputRef.current
-      ) {
-        const transfer =
-          new DataTransfer();
+      if (selectedFile && fileInputRef.current) {
+        const transfer = new DataTransfer();
 
-        transfer.items.add(
-          selectedFile
-        );
+        transfer.items.add(selectedFile);
 
-        fileInputRef.current.files =
-          transfer.files;
+        fileInputRef.current.files = transfer.files;
       }
     }
-  }, [
-    state,
-    onSuccess,
-    onClose,
-    selectedFile,
-    isEdit,
-  ]);
+  }, [state, onSuccess, onClose, selectedFile, isEdit]);
 
   const handleClose = () => {
     if (pending) return;
 
     formRef.current?.reset();
 
-    if (
-      fileInputRef.current
-    ) {
-      fileInputRef.current.value =
-        "";
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
 
     setSelectedFile(null);
@@ -294,29 +202,22 @@ const DoctorFormDialog = ({
   return (
     <Dialog
       open={open}
-      onOpenChange={(
-        nextOpen
-      ) => {
+      onOpenChange={(nextOpen) => {
         if (!nextOpen) {
           handleClose();
         }
       }}
     >
       <DialogContent className="flex max-h-[92vh] max-w-3xl flex-col overflow-hidden rounded-3xl p-0">
-
         <DialogHeader className="border-b border-slate-100 px-6 py-5 text-left dark:border-slate-800">
-
           <div className="flex items-start gap-3">
-
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40">
               <Stethoscope className="h-5 w-5" />
             </div>
 
             <div>
               <DialogTitle className="text-xl font-bold">
-                {isEdit
-                  ? "Edit Doctor"
-                  : "Add Doctor"}
+                {isEdit ? "Edit Doctor" : "Add Doctor"}
               </DialogTitle>
 
               <DialogDescription className="mt-1">
@@ -334,74 +235,41 @@ const DoctorFormDialog = ({
           className="flex min-h-0 flex-1 flex-col"
         >
           <div className="flex-1 space-y-7 overflow-y-auto px-6 py-5">
-
             {/* ACCOUNT */}
-            <FormSection
-              icon={UserRound}
-              title="Account Information"
-            >
+            <FormSection icon={UserRound} title="Account Information">
               <div className="grid gap-5 sm:grid-cols-2">
-
-                <DoctorField
-                  label="Full Name"
-                  id="name"
-                >
+                <DoctorField label="Full Name" id="name">
                   <Input
                     id="name"
                     name="name"
                     required
                     disabled={pending}
                     placeholder="Dr. John Doe"
-                    defaultValue={
-                      state?.formData
-                        ?.name ||
-                      doctor?.name ||
-                      ""
-                    }
+                    defaultValue={state?.formData?.name || doctor?.name || ""}
                     className="h-11 rounded-xl"
                   />
 
-                  <InputFieldError
-                    state={state}
-                    field="name"
-                  />
+                  <InputFieldError state={state} field="name" />
                 </DoctorField>
 
-                <DoctorField
-                  label="Email Address"
-                  id="email"
-                >
+                <DoctorField label="Email Address" id="email">
                   <Input
                     id="email"
                     name="email"
                     type="email"
                     required={!isEdit}
-                    disabled={
-                      pending ||
-                      isEdit
-                    }
+                    disabled={pending || isEdit}
                     placeholder="doctor@example.com"
-                    defaultValue={
-                      state?.formData
-                        ?.email ||
-                      doctor?.email ||
-                      ""
-                    }
+                    defaultValue={state?.formData?.email || doctor?.email || ""}
                     className="h-11 rounded-xl"
                   />
 
-                  <InputFieldError
-                    state={state}
-                    field="email"
-                  />
+                  <InputFieldError state={state} field="email" />
                 </DoctorField>
 
                 {!isEdit && (
                   <>
-                    <DoctorField
-                      label="Password"
-                      id="password"
-                    >
+                    <DoctorField label="Password" id="password">
                       <Input
                         id="password"
                         name="password"
@@ -409,24 +277,14 @@ const DoctorFormDialog = ({
                         required
                         disabled={pending}
                         placeholder="Enter password"
-                        defaultValue={
-                          state?.formData
-                            ?.password ||
-                          ""
-                        }
+                        defaultValue={state?.formData?.password || ""}
                         className="h-11 rounded-xl"
                       />
 
-                      <InputFieldError
-                        state={state}
-                        field="password"
-                      />
+                      <InputFieldError state={state} field="password" />
                     </DoctorField>
 
-                    <DoctorField
-                      label="Confirm Password"
-                      id="confirmPassword"
-                    >
+                    <DoctorField label="Confirm Password" id="confirmPassword">
                       <Input
                         id="confirmPassword"
                         name="confirmPassword"
@@ -434,18 +292,11 @@ const DoctorFormDialog = ({
                         required
                         disabled={pending}
                         placeholder="Confirm password"
-                        defaultValue={
-                          state?.formData
-                            ?.confirmPassword ||
-                          ""
-                        }
+                        defaultValue={state?.formData?.confirmPassword || ""}
                         className="h-11 rounded-xl"
                       />
 
-                      <InputFieldError
-                        state={state}
-                        field="confirmPassword"
-                      />
+                      <InputFieldError state={state} field="confirmPassword" />
                     </DoctorField>
                   </>
                 )}
@@ -453,129 +304,78 @@ const DoctorFormDialog = ({
             </FormSection>
 
             {/* PROFESSIONAL */}
-            <FormSection
-              icon={Briefcase}
-              title="Professional Information"
-            >
+            <FormSection icon={Briefcase} title="Professional Information">
               <SpecialtyMultiSelect
-                selectedSpecialtyIds={
-                  specialtySelection.selectedSpecialtyIds
-                }
-                removedSpecialtyIds={
-                  specialtySelection.removedSpecialtyIds
-                }
-                currentSpecialtyId={
-                  specialtySelection.currentSpecialtyId
-                }
-                availableSpecialties={
-                  specialtySelection.getAvailableSpecialties(
-                    specialities
-                  )
-                }
+                selectedSpecialtyIds={specialtySelection.selectedSpecialtyIds}
+                removedSpecialtyIds={specialtySelection.removedSpecialtyIds}
+                currentSpecialtyId={specialtySelection.currentSpecialtyId}
+                availableSpecialties={specialtySelection.getAvailableSpecialties(
+                  specialities,
+                )}
                 isEdit={isEdit}
                 onCurrentSpecialtyChange={
                   specialtySelection.setCurrentSpecialtyId
                 }
-                onAddSpecialty={
-                  specialtySelection.handleAddSpecialty
-                }
-                onRemoveSpecialty={
-                  specialtySelection.handleRemoveSpecialty
-                }
-                getSpecialtyTitle={
-                  getSpecialtyTitle
-                }
-                getNewSpecialties={
-                  specialtySelection.getNewSpecialties
-                }
+                onAddSpecialty={specialtySelection.handleAddSpecialty}
+                onRemoveSpecialty={specialtySelection.handleRemoveSpecialty}
+                getSpecialtyTitle={getSpecialtyTitle}
+                getNewSpecialties={specialtySelection.getNewSpecialties}
               />
 
-              <InputFieldError
-                field="specialties"
-                state={state}
-              />
+              <InputFieldError field="specialties" state={state} />
 
               <div className="grid gap-5 sm:grid-cols-2">
-
-                {[
+                {(
                   [
-                    "contactNumber",
-                    "Contact Number",
-                    doctor?.contactNumber,
-                    "+880...",
-                  ],
-                  [
-                    "address",
-                    "Address",
-                    doctor?.address,
-                    "Doctor's address",
-                  ],
-                  [
-                    "registrationNumber",
-                    "Registration Number",
-                    doctor?.registrationNumber,
-                    "Medical registration number",
-                  ],
-                  [
-                    "qualification",
-                    "Qualification",
-                    doctor?.qualification,
-                    "MBBS, MD",
-                  ],
-                  [
-                    "currentWorkingPlace",
-                    "Current Working Place",
-                    doctor?.currentWorkingPlace,
-                    "Hospital or clinic",
-                  ],
-                  [
-                    "designation",
-                    "Designation",
-                    doctor?.designation,
-                    "Senior Consultant",
-                  ],
-                ].map(
-                  ([
-                    id,
-                    label,
-                    currentValue,
-                    placeholder,
-                  ]) => (
-                    <DoctorField
-                      key={id}
-                      label={label}
+                    [
+                      "contactNumber",
+                      "Contact Number",
+                      doctor?.contactNumber,
+                      "+880...",
+                    ],
+                    ["address", "Address", doctor?.address, "Doctor's address"],
+                    [
+                      "registrationNumber",
+                      "Registration Number",
+                      doctor?.registrationNumber,
+                      "Medical registration number",
+                    ],
+                    [
+                      "qualification",
+                      "Qualification",
+                      doctor?.qualification,
+                      "MBBS, MD",
+                    ],
+                    [
+                      "currentWorkingPlace",
+                      "Current Working Place",
+                      doctor?.currentWorkingPlace,
+                      "Hospital or clinic",
+                    ],
+                    [
+                      "designation",
+                      "Designation",
+                      doctor?.designation,
+                      "Senior Consultant",
+                    ],
+                  ] as Array<[string, string, string | undefined, string]>
+                ).map(([id, label, currentValue, placeholder]) => (
+                  <DoctorField key={id} label={label} id={id}>
+                    <Input
                       id={id}
-                    >
-                      <Input
-                        id={id}
-                        name={id}
-                        required
-                        disabled={pending}
-                        placeholder={
-                          placeholder
-                        }
-                        defaultValue={
-                          state?.formData?.[
-                            id
-                          ] ||
-                          currentValue ||
-                          ""
-                        }
-                        className="h-11 rounded-xl"
-                      />
+                      name={id}
+                      required
+                      disabled={pending}
+                      placeholder={placeholder}
+                      defaultValue={state?.formData?.[id] || currentValue || ""}
+                      className="h-11 rounded-xl"
+                    />
 
-                      <InputFieldError
-                        state={state}
-                        field={id}
-                      />
-                    </DoctorField>
-                  )
-                )}
+                    <InputFieldError state={state} field={id} />
+                  </DoctorField>
+                ))}
 
-                <DoctorField
-                  label="Experience (Years)"
-                  id="experience"
-                >
+                <DoctorField label="Experience (Years)" id="experience">
                   <Input
                     id="experience"
                     name="experience"
@@ -584,24 +384,15 @@ const DoctorFormDialog = ({
                     required
                     disabled={pending}
                     defaultValue={
-                      state?.formData
-                        ?.experience ??
-                      doctor?.experience ??
-                      ""
+                      state?.formData?.experience ?? doctor?.experience ?? ""
                     }
                     className="h-11 rounded-xl"
                   />
 
-                  <InputFieldError
-                    state={state}
-                    field="experience"
-                  />
+                  <InputFieldError state={state} field="experience" />
                 </DoctorField>
 
-                <DoctorField
-                  label="Appointment Fee (BDT)"
-                  id="appointmentFee"
-                >
+                <DoctorField label="Appointment Fee (BDT)" id="appointmentFee">
                   <Input
                     id="appointmentFee"
                     name="appointmentFee"
@@ -610,18 +401,14 @@ const DoctorFormDialog = ({
                     required
                     disabled={pending}
                     defaultValue={
-                      state?.formData
-                        ?.appointmentFee ??
+                      state?.formData?.appointmentFee ??
                       doctor?.appointmentFee ??
                       ""
                     }
                     className="h-11 rounded-xl"
                   />
 
-                  <InputFieldError
-                    state={state}
-                    field="appointmentFee"
-                  />
+                  <InputFieldError state={state} field="appointmentFee" />
                 </DoctorField>
 
                 <Field>
@@ -642,14 +429,8 @@ const DoctorFormDialog = ({
                   <Select
                     value={gender}
                     disabled={pending}
-                    onValueChange={(
-                      value
-                    ) =>
-                      setGender(
-                        value as
-                          | "MALE"
-                          | "FEMALE"
-                      )
+                    onValueChange={(value) =>
+                      setGender(value as "MALE" | "FEMALE")
                     }
                   >
                     <SelectTrigger className="mt-2 h-11 rounded-xl">
@@ -657,29 +438,19 @@ const DoctorFormDialog = ({
                     </SelectTrigger>
 
                     <SelectContent>
-                      <SelectItem value="MALE">
-                        Male
-                      </SelectItem>
+                      <SelectItem value="MALE">Male</SelectItem>
 
-                      <SelectItem value="FEMALE">
-                        Female
-                      </SelectItem>
+                      <SelectItem value="FEMALE">Female</SelectItem>
                     </SelectContent>
                   </Select>
 
-                  <InputFieldError
-                    state={state}
-                    field="gender"
-                  />
+                  <InputFieldError state={state} field="gender" />
                 </Field>
               </div>
             </FormSection>
 
             {!isEdit && (
-              <FormSection
-                icon={Camera}
-                title="Profile Photo"
-              >
+              <FormSection icon={Camera} title="Profile Photo">
                 {previewImage && (
                   <img
                     src={previewImage}
@@ -695,41 +466,29 @@ const DoctorFormDialog = ({
                   type="file"
                   accept="image/*"
                   disabled={pending}
-                  onChange={
-                    handleFileChange
-                  }
+                  onChange={handleFileChange}
                   className="h-11 cursor-pointer rounded-xl"
                 />
 
                 <p className="text-xs text-slate-400">
-                  Upload a suitable doctor
-                  profile image. Maximum
-                  size: 5 MB.
+                  Upload a suitable doctor profile image. Maximum size: 5 MB.
                 </p>
 
                 {fileError && (
-                  <p className="text-sm text-red-600">
-                    {fileError}
-                  </p>
+                  <p className="text-sm text-red-600">{fileError}</p>
                 )}
 
-                <InputFieldError
-                  state={state}
-                  field="profilePhoto"
-                />
+                <InputFieldError state={state} field="profilePhoto" />
               </FormSection>
             )}
           </div>
 
           <DialogFooter className="border-t border-slate-100 bg-slate-50/70 px-6 py-4 dark:border-slate-800 dark:bg-slate-950/40">
-
             <Button
               type="button"
               variant="outline"
               disabled={pending}
-              onClick={
-                handleClose
-              }
+              onClick={handleClose}
               className="h-10 rounded-xl"
             >
               Cancel
@@ -737,10 +496,7 @@ const DoctorFormDialog = ({
 
             <Button
               type="submit"
-              disabled={
-                pending ||
-                Boolean(fileError)
-              }
+              disabled={pending || Boolean(fileError)}
               className="h-10 min-w-[150px] rounded-xl bg-blue-600 font-semibold text-white hover:bg-blue-700"
             >
               {pending ? (
@@ -774,16 +530,12 @@ function FormSection({
 }) {
   return (
     <section className="space-y-4">
-
       <div className="flex items-center gap-2">
-
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40">
           <Icon className="h-4 w-4" />
         </div>
 
-        <h3 className="font-bold text-slate-900 dark:text-white">
-          {title}
-        </h3>
+        <h3 className="font-bold text-slate-900 dark:text-white">{title}</h3>
       </div>
 
       {children}
@@ -802,16 +554,11 @@ function DoctorField({
 }) {
   return (
     <Field>
-      <FieldLabel
-        htmlFor={id}
-        className="text-sm font-semibold"
-      >
+      <FieldLabel htmlFor={id} className="text-sm font-semibold">
         {label}
       </FieldLabel>
 
-      <div className="mt-2 space-y-1">
-        {children}
-      </div>
+      <div className="mt-2 space-y-1">{children}</div>
     </Field>
   );
 }

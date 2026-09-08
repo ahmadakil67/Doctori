@@ -95,7 +95,7 @@ const createAppointment = async (
       cancel_url: `${process.env.CLIENT_URL}/consultation?payment=cancelled`,
     });
 
-    console.log("Stripe session created:", session);
+    // console.log("Stripe session created:", session);
 
     return { paymentUrl: session.url };
   });

@@ -14,6 +14,10 @@ import { Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+const API_URL =
+  process.env.NEXT_PUBLIC_BASE_API_URL ||
+  "http://localhost:5000/api/v1";
+
 export default function AIDoctorSuggestion() {
   const [symptoms, setSymptoms] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -26,24 +30,22 @@ export default function AIDoctorSuggestion() {
       return;
     }
 
+    
+
     setIsLoading(true);
     setSuggestion("");
     setShowSuggestion(false);
 
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/v1/doctors/suggestion",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            symptoms,
-          }),
+      const response = await fetch(`${API_URL}/doctors/suggestion`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
-
+        body: JSON.stringify({
+          symptoms,
+        }),
+      });
       const result = await response.json();
 
       if (result.success) {

@@ -1,6 +1,7 @@
 import DashboardNavbar from "@/components/modules/Dashboard/DashboardNavbar";
 import DashboardSidebar from "@/components/modules/Dashboard/DashboardSidebar";
 
+export const dynamic = "force-dynamic";
 const CommonDashboardLayout = async ({
   children,
 }: {

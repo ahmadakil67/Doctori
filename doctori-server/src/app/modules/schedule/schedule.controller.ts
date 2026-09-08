@@ -9,7 +9,7 @@ import { addMinutes } from "date-fns";
 
 
 const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
-  console.log("SCHEDULE PAYLOAD:", req.body);
+//   console.log("SCHEDULE PAYLOAD:", req.body);
 
   const result = await scheduleService.insertIntoDB(req.body);
 

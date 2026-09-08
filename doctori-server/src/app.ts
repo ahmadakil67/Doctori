@@ -18,7 +18,7 @@ app.post(
     PaymentController.handleStripeWebhookEvent
 );
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: process.env.CLIENT_URL,
     credentials: true
 }));
 
@@ -29,7 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 
 cron.schedule('* * * * *', () => {
     try {
-        console.log("Node cron called at ", new Date())
+        // console.log("Node cron called at ", new Date())
         AppointmentService.cancelUnpaidAppointments();
     } catch (err) {
         console.error(err);

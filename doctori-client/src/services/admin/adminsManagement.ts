@@ -87,8 +87,8 @@ export async function getAdmins(queryString?: string) {
 
     const result = await response.json();
 
-    console.log("ADMIN STATUS:", response.status);
-    console.log("ADMIN RESULT:", result);
+    // console.log("ADMIN STATUS:", response.status);
+    // console.log("ADMIN RESULT:", result);
 
     return result;
   } catch (error: any) {
