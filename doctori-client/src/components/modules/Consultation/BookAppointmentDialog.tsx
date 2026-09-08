@@ -65,17 +65,15 @@ export default function BookAppointmentDialog({
       setIsBooking(true);
       setErrorMessage("");
 
-      const result = await createAppointment(
-        doctor.id,
-        selectedSchedule.scheduleId
-      );
+      const result = await createAppointment({
+        doctorId: doctor.id,
+        scheduleId: selectedSchedule.scheduleId,
+      });
 
       console.log("Appointment result:", result);
 
       if (!result?.success) {
-        setErrorMessage(
-          result?.message || "Failed to book appointment."
-        );
+        setErrorMessage(result?.message || "Failed to book appointment.");
         return;
       }
 
@@ -83,7 +81,7 @@ export default function BookAppointmentDialog({
 
       if (!paymentUrl) {
         setErrorMessage(
-          "Appointment created but payment URL was not received."
+          "Appointment created but payment URL was not received.",
         );
         return;
       }
@@ -92,9 +90,7 @@ export default function BookAppointmentDialog({
     } catch (error) {
       console.error("Appointment booking error:", error);
 
-      setErrorMessage(
-        "Something went wrong while booking the appointment."
-      );
+      setErrorMessage("Something went wrong while booking the appointment.");
     } finally {
       setIsBooking(false);
     }
@@ -110,9 +106,7 @@ export default function BookAppointmentDialog({
     doctorSchedules.forEach((schedule) => {
       if (!schedule.schedule?.startDateTime) return;
 
-      const startDate = new Date(
-        schedule.schedule.startDateTime
-      )
+      const startDate = new Date(schedule.schedule.startDateTime)
         .toISOString()
         .split("T")[0];
 
@@ -125,16 +119,13 @@ export default function BookAppointmentDialog({
       grouped[startDate].push(schedule);
     });
 
-    return Object.entries(grouped).sort(([a], [b]) =>
-      a.localeCompare(b)
-    );
+    return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
   };
 
   const groupedSchedules = groupSchedulesByDate();
 
   const hasSchedulesWithoutData =
-    doctorSchedules.length > 0 &&
-    groupedSchedules.length === 0;
+    doctorSchedules.length > 0 && groupedSchedules.length === 0;
 
   return (
     <Dialog
@@ -147,9 +138,7 @@ export default function BookAppointmentDialog({
     >
       <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle>
-            Book Appointment with Dr. {doctor.name}
-          </DialogTitle>
+          <DialogTitle>Book Appointment with Dr. {doctor.name}</DialogTitle>
 
           <DialogDescription>
             Select an available time slot for your consultation
@@ -160,9 +149,7 @@ export default function BookAppointmentDialog({
           {/* Doctor Info */}
           <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
             <div>
-              <p className="font-medium">
-                {doctor.designation}
-              </p>
+              <p className="font-medium">{doctor.designation}</p>
 
               <p className="text-sm text-muted-foreground">
                 Consultation Fee: ${doctor.appointmentFee}
@@ -181,8 +168,8 @@ export default function BookAppointmentDialog({
 
               <p className="text-sm text-muted-foreground mt-1">
                 The doctor has {doctorSchedules.length} schedule
-                {doctorSchedules.length !== 1 ? "s" : ""}, but
-                detailed schedule information is not loaded.
+                {doctorSchedules.length !== 1 ? "s" : ""}, but detailed schedule
+                information is not loaded.
               </p>
             </div>
           ) : groupedSchedules.length === 0 ? (
@@ -200,63 +187,48 @@ export default function BookAppointmentDialog({
           ) : (
             <ScrollArea className="h-[300px] pr-4">
               <div className="space-y-4">
-                {groupedSchedules.map(
-                  ([date, dateSchedules]) => (
-                    <div key={date}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                {groupedSchedules.map(([date, dateSchedules]) => (
+                  <div key={date}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
 
-                        <h4 className="font-medium">
-                          {format(
-                            new Date(date),
-                            "EEEE, MMMM d, yyyy"
-                          )}
-                        </h4>
-                      </div>
-
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {dateSchedules.map((schedule) => {
-                          const startTime =
-                            schedule.schedule?.startDateTime
-                              ? new Date(
-                                  schedule.schedule.startDateTime
-                                )
-                              : null;
-
-                          const isSelected =
-                            selectedSchedule?.scheduleId ===
-                            schedule.scheduleId;
-
-                          return (
-                            <Button
-                              key={schedule.scheduleId}
-                              type="button"
-                              variant={
-                                isSelected
-                                  ? "default"
-                                  : "outline"
-                              }
-                              className="justify-start h-auto py-2"
-                              disabled={isBooking}
-                              onClick={() => {
-                                setSelectedSchedule(schedule);
-                                setErrorMessage("");
-                              }}
-                            >
-                              <Clock className="h-4 w-4 mr-2" />
-
-                              <span className="text-sm">
-                                {startTime
-                                  ? format(startTime, "h:mm a")
-                                  : "N/A"}
-                              </span>
-                            </Button>
-                          );
-                        })}
-                      </div>
+                      <h4 className="font-medium">
+                        {format(new Date(date), "EEEE, MMMM d, yyyy")}
+                      </h4>
                     </div>
-                  )
-                )}
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {dateSchedules.map((schedule) => {
+                        const startTime = schedule.schedule?.startDateTime
+                          ? new Date(schedule.schedule.startDateTime)
+                          : null;
+
+                        const isSelected =
+                          selectedSchedule?.scheduleId === schedule.scheduleId;
+
+                        return (
+                          <Button
+                            key={schedule.scheduleId}
+                            type="button"
+                            variant={isSelected ? "default" : "outline"}
+                            className="justify-start h-auto py-2"
+                            disabled={isBooking}
+                            onClick={() => {
+                              setSelectedSchedule(schedule);
+                              setErrorMessage("");
+                            }}
+                          >
+                            <Clock className="h-4 w-4 mr-2" />
+
+                            <span className="text-sm">
+                              {startTime ? format(startTime, "h:mm a") : "N/A"}
+                            </span>
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             </ScrollArea>
           )}
@@ -285,9 +257,7 @@ export default function BookAppointmentDialog({
             onClick={handleBookAppointment}
             disabled={!selectedSchedule || isBooking}
           >
-            {isBooking
-              ? "Processing..."
-              : "Book Appointment"}
+            {isBooking ? "Processing..." : "Book Appointment"}
           </Button>
         </DialogFooter>
       </DialogContent>

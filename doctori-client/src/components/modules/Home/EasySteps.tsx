@@ -1,99 +1,161 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronRight, Check } from "lucide-react";
 
-interface Step {
-  id: number;
-  title: string;
-  description: string;
-}
+import {
+  ArrowRight,
+  CalendarCheck,
+  ChevronRight,
+  HeartPulse,
+  Search,
+  UserRoundSearch,
+} from "lucide-react";
 
-const steps: Step[] = [
-  { id: 1, title: "Sign Up", description: "Quick email registration." },
-  { id: 2, title: "Select Service", description: "Choose your perfect match." },
-  { id: 3, title: "Provide Details", description: "Input necessary request data." },
-  { id: 4, title: "Confirm Request", description: "Review and finalize selection." },
-  { id: 5, title: "Expert Analysis", description: "Our pros find the solution." },
-  { id: 6, title: "Receive Solution", description: "Get results delivered fast." },
-  { id: 7, title: "Review Feedback", description: "Provide your valuable input." },
-  { id: 8, title: "Complete Process", description: "Enjoy your finished results." },
+const steps = [
+  {
+    id: "01",
+    icon: HeartPulse,
+    title: "Explore Your Care",
+    description:
+      "Browse medical specialties and understand which area of care may be relevant to your needs.",
+  },
+  {
+    id: "02",
+    icon: Search,
+    title: "Find Doctors",
+    description:
+      "Search available doctors by specialty and explore healthcare professionals on Doctori.",
+  },
+  {
+    id: "03",
+    icon: UserRoundSearch,
+    title: "Review Doctor Profiles",
+    description:
+      "Compare experience, qualifications, consultation fees, specialties, and available schedules.",
+  },
+  {
+    id: "04",
+    icon: CalendarCheck,
+    title: "Book Your Appointment",
+    description:
+      "Choose an available time slot and continue securely through the appointment booking process.",
+  },
 ];
 
-export const EasySteps: React.FC = () => {
+export const EasySteps = () => {
   return (
-    <section className="py-16 px-4 bg-background">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-black tracking-tight text-foreground">
-            How it <span className="text-primary">Works</span>
+    <section className="relative overflow-hidden bg-white py-20 sm:py-24 dark:bg-slate-950">
+      {/* Background */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-10 h-80 w-[700px] -translate-x-1/2 rounded-full bg-blue-100/50 blur-3xl dark:bg-blue-950/20" />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* ======================================
+            HEADER
+        ====================================== */}
+        <div className="mx-auto mb-14 max-w-3xl text-center">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">
+            How Doctori Works
+          </p>
+
+          <h2 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl dark:text-white">
+            From finding care to
+            <span className="text-blue-600"> booking a doctor.</span>
           </h2>
-          <p className="text-muted-foreground mt-2 text-sm uppercase tracking-widest font-bold">
-            8 Simple Steps to Success
+
+          <p className="mx-auto mt-5 max-w-2xl leading-7 text-slate-600 dark:text-slate-400">
+            Doctori keeps the healthcare discovery process clear and
+            straightforward, helping you move from exploring care to booking an
+            appointment.
           </p>
         </div>
 
-        {/* Grid Container */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
-          {steps.map((step, index) => (
-            <motion.div
-              key={step.id}
-              initial={{ opacity: 0, x: -10 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.05 }}
-              className="relative"
-            >
-              {/* Flow Line (Connector) */}
-              {/* Only shows on desktop/large screens for steps that aren't the last in the row */}
-              {index !== steps.length - 1 && (
-                <div className="hidden lg:block absolute -right-6 top-1/2 -translate-y-1/2 z-0">
-                  <ChevronRight className="w-4 h-4 text-primary/30" />
-                  <div className="absolute right-4 top-1/2 w-4 h-[1px] bg-border" />
-                </div>
-              )}
+        {/* ======================================
+            STEPS
+        ====================================== */}
+        <div className="relative">
+          {/* Desktop connector */}
+          <div className="absolute left-[12%] right-[12%] top-12 hidden h-px bg-gradient-to-r from-transparent via-blue-200 to-transparent lg:block dark:via-blue-900" />
 
-              <Card className="group relative overflow-hidden border border-border bg-card hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-md rounded-xl">
-                {/* Slim Step Indicator Tab */}
-                <div className="absolute top-0 left-0 bottom-0 w-1 bg-primary/20 group-hover:bg-primary transition-colors" />
-                
-                <CardContent className="p-4 flex items-center gap-4">
-                  {/* Small Circular ID */}
-                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-secondary text-secondary-foreground flex items-center justify-center text-xs font-bold border border-border group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-                    {step.id}
-                  </div>
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
 
-                  <div className="min-w-0">
-                    <h3 className="text-sm font-bold text-foreground leading-none mb-1 group-hover:text-primary transition-colors">
+              return (
+                <motion.div
+                  key={step.id}
+                  initial={{
+                    opacity: 0,
+                    y: 20,
+                  }}
+                  whileInView={{
+                    opacity: 1,
+                    y: 0,
+                  }}
+                  viewport={{
+                    once: true,
+                    amount: 0.2,
+                  }}
+                  transition={{
+                    duration: 0.45,
+                    delay: index * 0.08,
+                  }}
+                  className="relative"
+                >
+                  <article className="group relative h-full rounded-3xl border border-slate-200 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-950/5 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-900">
+                    {/* Icon + number */}
+                    <div className="mb-7 flex items-center justify-between">
+                      <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20 transition-transform duration-300 group-hover:scale-105">
+                        <Icon className="h-5 w-5" />
+                      </div>
+
+                      <span className="text-sm font-bold tracking-[0.18em] text-slate-300 dark:text-slate-700">
+                        {step.id}
+                      </span>
+                    </div>
+
+                    <h3 className="text-lg font-bold text-slate-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
                       {step.title}
                     </h3>
-                    <p className="text-xs text-muted-foreground line-clamp-1 group-hover:text-foreground/70 transition-colors">
+
+                    <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-400">
                       {step.description}
                     </p>
-                  </div>
+                  </article>
 
-                  {/* Tiny Status Icon */}
-                  <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Check className="w-3 h-3 text-primary" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Vertical line for mobile flow */}
-              {index !== steps.length - 1 && (
-                <div className="lg:hidden absolute -bottom-8 left-1/2 -translate-x-1/2 w-[1px] h-4 bg-border" />
-              )}
-            </motion.div>
-          ))}
+                  {/* Desktop arrow */}
+                  {index < steps.length - 1 && (
+                    <div className="absolute -right-3 top-9 z-20 hidden h-7 w-7 items-center justify-center rounded-full border border-blue-100 bg-white text-blue-500 shadow-sm lg:flex dark:border-slate-800 dark:bg-slate-900">
+                      <ChevronRight className="h-4 w-4" />
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Visual Road Indicator */}
-        <div className="mt-16 flex justify-center">
-          <div className="px-6 py-2 rounded-full bg-secondary/50 border border-border text-[10px] font-black uppercase tracking-tighter text-muted-foreground">
-            End of Workflow
-          </div>
+        {/* ======================================
+            BOTTOM ACTIONS
+        ====================================== */}
+        <div className="mt-12 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Link
+            href="/consultation"
+            className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+          >
+            Find a Doctor
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
+
+          <Link
+            href="/how-it-works"
+            className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:text-blue-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+          >
+            Learn How It Works
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
       </div>
     </section>

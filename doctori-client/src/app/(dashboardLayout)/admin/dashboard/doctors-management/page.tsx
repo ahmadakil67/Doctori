@@ -1,40 +1,80 @@
 import DoctorFilters from "@/components/modules/Admin/DoctorsManagement/DoctorFilters";
 import DoctorsManagementHeader from "@/components/modules/Admin/DoctorsManagement/DoctorsManagementHeader";
 import DoctorsTable from "@/components/modules/Admin/DoctorsManagement/DoctorsTable";
+
 import TablePagination from "@/components/shared/TablePagination";
-import { TableSkeleton } from "@/components/shared/TableSkeleton";
+
 import { queryStringFormatter } from "@/lib/formatters";
+
 import { getDoctors } from "@/services/admin/doctorManagement";
 import { getSpecialities } from "@/services/admin/specialitiesManagement";
-import { Suspense } from "react";
 
 const AdminDoctorsManagementPage = async ({
   searchParams,
 }: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams: Promise<{
+    [key: string]:
+      | string
+      | string[]
+      | undefined;
+  }>;
 }) => {
-  const searchParamsObj = await searchParams;
-  const queryString = queryStringFormatter(searchParamsObj); // {searchTerm: "John", speciality: "Cardiology" => "?searchTerm=John&speciality=Cardiology"}
-  const specialitiesResult = await getSpecialities();
-  const doctorsResult = await getDoctors(queryString);
-  console.log({ doctorsResult });
-  const totalPages = Math.ceil(
-    (doctorsResult?.meta?.total || 1) / (doctorsResult?.meta?.limit || 1)
+  const params = await searchParams;
+
+  const queryString =
+    queryStringFormatter(params);
+
+  const [
+    doctorsResult,
+    specialitiesResult,
+  ] = await Promise.all([
+    getDoctors(queryString),
+    getSpecialities(),
+  ]);
+
+  const doctors =
+    doctorsResult?.data || [];
+
+  const specialities =
+    specialitiesResult?.data || [];
+
+  const meta =
+    doctorsResult?.meta;
+
+  const currentPage =
+    meta?.page || 1;
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(
+      (meta?.total || 0) /
+        (meta?.limit || 1)
+    )
   );
+
   return (
-    <div className="space-y-6">
-      <DoctorsManagementHeader specialities={specialitiesResult?.data || []} />
-      <DoctorFilters specialties={specialitiesResult?.data || []} />
-      <Suspense fallback={<TableSkeleton columns={10} rows={10} />}>
-        <DoctorsTable
-          doctors={doctorsResult.data}
-          specialities={specialitiesResult?.data || []}
-        />
-        <TablePagination
-          currentPage={doctorsResult?.meta?.page || 1}
-          totalPages={totalPages || 1}
-        />
-      </Suspense>
+    <div className="space-y-8">
+      <DoctorsManagementHeader
+        specialities={specialities}
+      />
+
+      <DoctorFilters
+        specialties={specialities}
+      />
+
+      <DoctorsTable
+        doctors={doctors}
+        specialities={specialities}
+      />
+
+      {totalPages > 1 && (
+        <div className="flex justify-end">
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+          />
+        </div>
+      )}
     </div>
   );
 };

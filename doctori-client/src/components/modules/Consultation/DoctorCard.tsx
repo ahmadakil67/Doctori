@@ -1,127 +1,268 @@
 "use client";
+
+import Link from "next/link";
+import { useState } from "react";
+
+import {
+  ArrowUpRight,
+  Banknote,
+  CalendarDays,
+  Clock3,
+  MapPin,
+  Star,
+  Stethoscope,
+} from "lucide-react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import { getInitials } from "@/lib/formatters";
 import { IDoctor } from "@/types/doctor.interface";
-import { Clock, DollarSign, Eye, MapPin, Star } from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
+
 import BookAppointmentDialog from "./BookAppointmentDialog";
 
-interface DoctorCard {
+interface DoctorCardProps {
   doctor: IDoctor;
 }
 
-export default function DoctorCard({ doctor }: DoctorCard) {
+export default function DoctorCard({ doctor }: DoctorCardProps) {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+
+  const profilePhoto =
+    typeof doctor.profilePhoto === "string"
+      ? doctor.profilePhoto
+      : "";
+
+  // Backend relation name is "specialities"
+  const specialtyTitles =
+    doctor.doctorSpecialties
+      ?.map((item) => item.specialities?.title)
+      .filter((title): title is string => Boolean(title)) || [];
+
+  const primarySpecialty = specialtyTitles[0];
+
+  // Doctor list API includes review ratings.
+  // Use averageRating if available, otherwise calculate from reviews.
+  const reviewRatings =
+    doctor.reviews
+      ?.map((review) => review.rating)
+      .filter((rating) => typeof rating === "number") || [];
+
+  const calculatedRating =
+    reviewRatings.length > 0
+      ? reviewRatings.reduce((sum, rating) => sum + rating, 0) /
+        reviewRatings.length
+      : null;
+
+  const rating =
+    doctor.averageRating ?? calculatedRating;
+
+  const availableSlots =
+    doctor.doctorSchedules?.length || 0;
 
   return (
     <>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-        <CardHeader className="pb-3">
+      <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-900">
+
+        {/* ============================
+            DOCTOR HEADER
+        ============================ */}
+        <div className="p-6 pb-5">
           <div className="flex items-start gap-4">
-            <Avatar className="h-16 w-16">
-              <AvatarImage src={doctor.profilePhoto || ""} alt={doctor.name} />
-              <AvatarFallback className="text-lg">
+
+            <Avatar className="h-20 w-20 shrink-0 border-2 border-white shadow-md ring-1 ring-slate-100 dark:border-slate-900 dark:ring-slate-800">
+              <AvatarImage
+                src={profilePhoto}
+                alt={`Dr. ${doctor.name}`}
+                className="object-cover"
+              />
+
+              <AvatarFallback className="bg-blue-50 text-lg font-bold text-blue-600 dark:bg-blue-950/50">
                 {getInitials(doctor.name)}
               </AvatarFallback>
             </Avatar>
 
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg line-clamp-1">
-                Dr. {doctor.name}
-              </CardTitle>
-              <CardDescription className="line-clamp-1">
-                {doctor.designation}
-              </CardDescription>
+            <div className="min-w-0 flex-1">
+              {primarySpecialty && (
+                <Badge className="mb-2 border-0 bg-blue-50 text-blue-700 hover:bg-blue-50 dark:bg-blue-950/50 dark:text-blue-300">
+                  <Stethoscope className="mr-1 h-3 w-3" />
+                  {primarySpecialty}
+                </Badge>
+              )}
 
-              <div className="flex items-center gap-2 mt-2">
-                <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-medium">
-                    {doctor.averageRating?.toFixed(1) || "N/A"}
+              <h3 className="line-clamp-1 text-xl font-bold tracking-tight text-slate-950 dark:text-white">
+                Dr. {doctor.name}
+              </h3>
+
+              <p className="mt-1 line-clamp-1 text-sm text-slate-500 dark:text-slate-400">
+                {doctor.designation}
+              </p>
+
+              {/* Rating */}
+              <div className="mt-2.5 flex items-center gap-2">
+                {rating !== null ? (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+
+                      <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                        {rating.toFixed(1)}
+                      </span>
+                    </div>
+
+                    {reviewRatings.length > 0 && (
+                      <span className="text-xs text-slate-400">
+                        ({reviewRatings.length}{" "}
+                        {reviewRatings.length === 1
+                          ? "review"
+                          : "reviews"})
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-xs text-slate-400">
+                    No reviews yet
                   </span>
-                </div>
-                {doctor.doctorSpecialties &&
-                  doctor.doctorSpecialties.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {doctor.doctorSpecialties[0].specialties?.title}
-                    </Badge>
-                  )}
+                )}
               </div>
             </div>
           </div>
-        </CardHeader>
 
-        <CardContent className="space-y-3 pb-3">
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Clock className="h-4 w-4 shrink-0" />
-              <span className="truncate">{doctor.experience} years exp</span>
+          {/* ============================
+              IMPORTANT INFORMATION
+          ============================ */}
+          <div className="mt-6 grid grid-cols-2 gap-3">
+
+            <div className="rounded-2xl bg-slate-50 p-3.5 dark:bg-slate-950/60">
+              <div className="flex items-center gap-2 text-slate-400">
+                <Clock3 className="h-4 w-4" />
+
+                <span className="text-xs font-medium">
+                  Experience
+                </span>
+              </div>
+
+              <p className="mt-1.5 text-sm font-semibold text-slate-800 dark:text-slate-200">
+                {doctor.experience
+                  ? `${doctor.experience} years`
+                  : "Not specified"}
+              </p>
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <DollarSign className="h-4 w-4 shrink-0" />
-              <span className="font-semibold text-foreground">
+
+            <div className="rounded-2xl bg-slate-50 p-3.5 dark:bg-slate-950/60">
+              <div className="flex items-center gap-2 text-slate-400">
+                <Banknote className="h-4 w-4" />
+
+                <span className="text-xs font-medium">
+                  Consultation
+                </span>
+              </div>
+
+              <p className="mt-1.5 text-sm font-semibold text-slate-800 dark:text-slate-200">
                 ${doctor.appointmentFee}
-              </span>
+              </p>
             </div>
           </div>
 
+          {/* Availability */}
+          <div
+            className={`mt-3 flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm ${
+              availableSlots > 0
+                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
+                : "bg-slate-50 text-slate-500 dark:bg-slate-950/60 dark:text-slate-400"
+            }`}
+          >
+            <CalendarDays className="h-4 w-4 shrink-0" />
+
+            {availableSlots > 0 ? (
+              <span className="font-medium">
+                {availableSlots} available{" "}
+                {availableSlots === 1 ? "slot" : "slots"}
+              </span>
+            ) : (
+              <span>No available slots right now</span>
+            )}
+          </div>
+
+          {/* Workplace */}
           {doctor.currentWorkingPlace && (
-            <div className="flex items-start gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4 shrink-0 mt-0.5" />
-              <span className="line-clamp-1">{doctor.currentWorkingPlace}</span>
+            <div className="mt-4 flex items-start gap-2.5">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+
+              <p className="line-clamp-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                {doctor.currentWorkingPlace}
+              </p>
             </div>
           )}
 
-          <div className="text-sm">
-            <p className="font-medium mb-1">Qualification:</p>
-            <p className="text-muted-foreground line-clamp-2">
-              {doctor.qualification}
-            </p>
-          </div>
+          {/* Qualification */}
+          {doctor.qualification && (
+            <div className="mt-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Qualification
+              </p>
 
-          {doctor.doctorSpecialties && doctor.doctorSpecialties.length > 1 && (
-            <div className="flex flex-wrap gap-1">
-              {doctor.doctorSpecialties.slice(1, 3).map((specialty) => (
+              <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                {doctor.qualification}
+              </p>
+            </div>
+          )}
+
+          {/* More Specialties */}
+          {specialtyTitles.length > 1 && (
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {specialtyTitles.slice(1, 3).map((specialty) => (
                 <Badge
-                  key={specialty.specialitiesId}
+                  key={specialty}
                   variant="outline"
-                  className="text-xs"
+                  className="rounded-lg text-xs font-medium"
                 >
-                  {specialty.specialties?.title}
+                  {specialty}
                 </Badge>
               ))}
-              {doctor.doctorSpecialties.length > 3 && (
-                <Badge variant="outline" className="text-xs">
-                  +{doctor.doctorSpecialties.length - 3} more
+
+              {specialtyTitles.length > 3 && (
+                <Badge
+                  variant="outline"
+                  className="rounded-lg text-xs font-medium text-slate-500"
+                >
+                  +{specialtyTitles.length - 3} more
                 </Badge>
               )}
             </div>
           )}
-        </CardContent>
+        </div>
 
-        <CardFooter className="pt-3 border-t flex gap-2">
-          <Link className="flex-1" href={`/consultation/doctor/${doctor.id}`}>
-            <Button variant="outline" className="w-full">
-              <Eye className="h-4 w-4 mr-2" />
-              View Details
+        {/* ============================
+            ACTIONS
+        ============================ */}
+        <div className="mt-auto border-t border-slate-100 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-950/30">
+          <div className="grid grid-cols-2 gap-2.5">
+
+            <Button
+              variant="outline"
+              className="h-11 rounded-xl bg-white font-semibold dark:bg-slate-900"
+              asChild
+            >
+              <Link href={`/consultation/doctor/${doctor.id}`}>
+                View Profile
+                <ArrowUpRight className="ml-1.5 h-4 w-4" />
+              </Link>
             </Button>
-          </Link>
-          <Button onClick={() => setShowScheduleModal(true)} className="flex-1">
-            Book Appointment
-          </Button>
-        </CardFooter>
-      </Card>
+
+            <Button
+              onClick={() => setShowScheduleModal(true)}
+              disabled={availableSlots === 0}
+              className="h-11 rounded-xl bg-blue-600 font-semibold text-white hover:bg-blue-700"
+            >
+              <CalendarDays className="mr-1.5 h-4 w-4" />
+
+              Book
+            </Button>
+          </div>
+        </div>
+      </article>
 
       <BookAppointmentDialog
         doctor={doctor}

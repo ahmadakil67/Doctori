@@ -3,6 +3,7 @@ import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { IJWTPayload } from "../../type/common";
 import { DoctorScheduleService } from "./doctorSchedule.service";
+import pick from "../../helper/pick";
 
 
 

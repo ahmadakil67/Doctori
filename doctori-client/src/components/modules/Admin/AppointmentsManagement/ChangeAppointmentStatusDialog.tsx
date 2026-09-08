@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,13 +18,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { changeAppointmentStatus } from "@/services/admin/appoitmentsManagement";
-
 import {
   AppointmentStatus,
   IAppointment,
 } from "@/types/appointments.interface";
-import { Loader2 } from "lucide-react";
-import { useState, useTransition } from "react";
+import {
+  ArrowRight,
+  CalendarClock,
+  Loader2,
+  UserRound,
+} from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 interface ChangeAppointmentStatusDialogProps {
@@ -39,20 +44,25 @@ const ChangeAppointmentStatusDialog = ({
   appointment,
   onSuccess,
 }: ChangeAppointmentStatusDialogProps) => {
-  // Initialize state based on the appointment prop
-  const [selectedStatus, setSelectedStatus] = useState<AppointmentStatus>(
-    appointment?.status || AppointmentStatus.SCHEDULED
-  );
+  const [selectedStatus, setSelectedStatus] =
+    useState<AppointmentStatus>(AppointmentStatus.SCHEDULED);
+
   const [isPending, startTransition] = useTransition();
 
-  // Reset status when dialog opens with different appointment
-  if (appointment && open && selectedStatus !== appointment.status) {
-    setSelectedStatus(appointment.status);
-  }
+  useEffect(() => {
+    if (open && appointment) {
+      setSelectedStatus(appointment.status);
+    }
+  }, [open, appointment]);
+
+  if (!appointment) return null;
+
+  const hasChanged = selectedStatus !== appointment.status;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!appointment) return;
+
+    if (!hasChanged) return;
 
     startTransition(async () => {
       const result = await changeAppointmentStatus(
@@ -61,7 +71,7 @@ const ChangeAppointmentStatusDialog = ({
       );
 
       if (result?.success) {
-        toast.success("Appointment status updated successfully!");
+        toast.success("Appointment status updated successfully");
         onSuccess();
       } else {
         toast.error(result?.message || "Failed to update status");
@@ -69,35 +79,58 @@ const ChangeAppointmentStatusDialog = ({
     });
   };
 
-  if (!appointment) return null;
-
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
+    >
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Change Appointment Status</DialogTitle>
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
+            <CalendarClock className="h-5 w-5 text-primary" />
+          </div>
+
+          <DialogTitle className="pt-2">
+            Change Appointment Status
+          </DialogTitle>
+
           <DialogDescription>
-            Update the status for this appointment
+            Select the new status for this appointment.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
-            {/* Current Appointment Info */}
-            <div className="rounded-lg border p-3 space-y-1">
-              <div className="text-sm text-muted-foreground">Patient</div>
-              <div className="font-medium">{appointment.patient?.name}</div>
-              <div className="text-sm text-muted-foreground">Doctor</div>
-              <div className="font-medium">{appointment.doctor?.name}</div>
-              <div className="text-sm text-muted-foreground mt-2">
-                Current Status:{" "}
-                <span className="font-medium">{appointment.status}</span>
+          <div className="space-y-5 py-4">
+            <div className="rounded-xl border bg-muted/30 p-4">
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+                <UserRound className="h-4 w-4 text-muted-foreground" />
+                Appointment
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">Patient</p>
+                  <p className="mt-1 text-sm font-medium">
+                    {appointment.patient?.name || "N/A"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground">Doctor</p>
+                  <p className="mt-1 text-sm font-medium">
+                    {appointment.doctor?.name || "N/A"}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Status Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">New Status</label>
+              <label className="text-sm font-medium">
+                Appointment Status
+              </label>
+
               <Select
                 value={selectedStatus}
                 onValueChange={(value) =>
@@ -105,28 +138,40 @@ const ChangeAppointmentStatusDialog = ({
                 }
                 disabled={isPending}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Select appointment status" />
                 </SelectTrigger>
+
                 <SelectContent>
                   <SelectItem value={AppointmentStatus.SCHEDULED}>
                     Scheduled
                   </SelectItem>
+
                   <SelectItem value={AppointmentStatus.INPROGRESS}>
                     In Progress
                   </SelectItem>
+
                   <SelectItem value={AppointmentStatus.COMPLETED}>
                     Completed
                   </SelectItem>
+
                   <SelectItem value={AppointmentStatus.CANCELED}>
                     Canceled
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-2.5">
+              <Badge variant="outline">{appointment.status}</Badge>
+
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+
+              <Badge variant="secondary">{selectedStatus}</Badge>
+            </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button
               type="button"
               variant="outline"
@@ -135,9 +180,19 @@ const ChangeAppointmentStatusDialog = ({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Update Status
+
+            <Button
+              type="submit"
+              disabled={isPending || !hasChanged}
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Status"
+              )}
             </Button>
           </DialogFooter>
         </form>

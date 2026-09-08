@@ -7,7 +7,7 @@ import { PaymentService } from "./payment.service";
 const handleStripeWebhookEvent = catchAsync(async (req: Request, res: Response) => {
 
     const sig = req.headers["stripe-signature"] as string;
-    const webhookSecret = "whsec_4d49d9e86d87cfbe245bc667b86b304885d89dc93f7d36cb51d774147baac7e5"
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 
     let event;
     try {

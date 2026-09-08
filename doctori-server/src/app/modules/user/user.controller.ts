@@ -53,6 +53,34 @@ const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const getAllAdminsFromDB = catchAsync(
+  async (req: Request, res: Response) => {
+    const filters = pick(req.query, [
+      "searchTerm",
+      "email",
+      "contactNumber",
+    ]);
+
+    const options = pick(req.query, [
+      "page",
+      "limit",
+      "sortBy",
+      "sortOrder",
+    ]);
+
+    const result =
+      await userService.getAllAdminsFromDB(filters, options);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Admins retrieved successfully!",
+      meta: result.meta,
+      data: result.data,
+    });
+  }
+);
+
 const getMyProfile = catchAsync(async (req: Request & { user?: IJWTPayload }, res: Response) => {
 
     const user = req.user;
@@ -80,11 +108,35 @@ const changeProfileStatus = catchAsync(async (req: Request, res: Response) => {
     })
 });
 
+const updateMyProfile = catchAsync(
+  async (
+    req: Request & {
+      user?: IJWTPayload;
+    },
+    res: Response
+  ) => {
+    const result =
+      await userService.updateMyProfile(
+        req.user as IJWTPayload,
+        req
+      );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Profile updated successfully!",
+      data: result,
+    });
+  }
+);
+
 export const userController = {
     createPatient,
     createAdmin,
     createDoctor,
     getAllFromDB,
     getMyProfile,
-    changeProfileStatus
+    changeProfileStatus,
+    updateMyProfile,
+    getAllAdminsFromDB,
 }

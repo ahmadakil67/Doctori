@@ -1,35 +1,29 @@
-"use client";
+import type { Metadata } from "next";
+
 import { EasySteps } from "@/components/modules/Home/EasySteps";
 import Hero from "@/components/modules/Home/Hero";
 import OurSpecialties from "@/components/modules/Home/OurSpecialties";
 import TopRatedDoctors from "@/components/modules/Home/TopRatedDoctors";
-import dynamic from "next/dynamic";
-import Head from "next/head";
+import { ClientTestimonials } from "@/components/modules/Home/ClientTestimonials";
 
-const ClientTestimonials = dynamic(
-  () => import('@/components/modules/Home/ClientTestimonials').then(mod => mod.ClientTestimonials),
-  { ssr: false }
-);
+export const metadata: Metadata = {
+  title: "Doctori | Smart Healthcare",
+  description:
+    "Explore medical specialties, discover doctors, and manage your healthcare journey with Doctori.",
+};
 
 export default function Home() {
   return (
-    <>
+    <main>
+      <Hero />
 
-      <Head>
-        <title>Doctori - Your AI-Powered Doctor Finder</title>
-        <meta name="description" content="Doctori is an AI-powered doctor finder that helps you quickly find the right doctor based on your symptoms. Get personalized recommendations and book appointments with ease." />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <OurSpecialties />
 
-      <main>
-        <Hero />
-        <OurSpecialties />
-        <TopRatedDoctors />
-        <EasySteps />
-        <ClientTestimonials />
-      </main>
+      <TopRatedDoctors />
 
-    </>
+      <EasySteps />
+
+      <ClientTestimonials />
+    </main>
   );
 }

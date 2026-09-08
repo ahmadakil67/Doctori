@@ -1,19 +1,26 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
+
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "@/components/ui/select";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+interface SelectOption {
+  label: string;
+  value: string;
+}
 
 interface SelectFilterProps {
-  paramName: string; // ?gender=
-  placeholder?: string;
-  options: { label: string; value: string }[];
+  paramName: string;
+  placeholder: string;
+  options: SelectOption[];
 }
+
+const ALL_VALUE = "__ALL__";
 
 const SelectFilter = ({
   paramName,
@@ -21,39 +28,55 @@ const SelectFilter = ({
   options,
 }: SelectFilterProps) => {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
 
-  const currentValue = searchParams.get(paramName) || "All";
+  const currentParam = searchParams.get(paramName);
 
-  const handleChange = (value: string) => {
+  const normalizedOptions = options.map((option) => ({
+    ...option,
+    value: option.value === "" ? ALL_VALUE : option.value,
+  }));
+
+  const hasAllOption = options.some((option) => option.value === "");
+
+  const selectedValue =
+    currentParam ?? (hasAllOption ? ALL_VALUE : undefined);
+
+  const handleValueChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
 
-    if (value === "All") {
+    if (value === ALL_VALUE) {
       params.delete(paramName);
-    } else if (value) {
-      params.set(paramName, value);
     } else {
-      params.delete(paramName);
+      params.set(paramName, value);
     }
 
-    startTransition(() => {
-      router.push(`?${params.toString()}`);
-    });
+    params.delete("page");
+
+    const query = params.toString();
+
+    router.replace(
+      query ? `${pathname}?${query}` : pathname,
+      { scroll: false }
+    );
   };
+
   return (
     <Select
-      value={currentValue}
-      onValueChange={handleChange}
-      disabled={isPending}
+      value={selectedValue}
+      onValueChange={handleValueChange}
     >
-      <SelectTrigger>
+      <SelectTrigger className="w-full bg-background">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
+
       <SelectContent>
-        <SelectItem value="All">All</SelectItem>
-        {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
+        {normalizedOptions.map((option) => (
+          <SelectItem
+            key={option.value}
+            value={option.value}
+          >
             {option.label}
           </SelectItem>
         ))}

@@ -19,6 +19,11 @@ router.get(
     auth(UserRole.ADMIN, UserRole.DOCTOR, UserRole.PATIENT),
     userController.getMyProfile
 )
+router.get(
+  "/admins",
+  auth(UserRole.ADMIN),
+  userController.getAllAdminsFromDB
+);
 
 router.post('/create-patient',
     fileUploader.upload.single('file'),
@@ -48,6 +53,34 @@ router.post(
         req.body = userValidation.createDoctorValidationSchema.parse(JSON.parse(req.body.data))
         return userController.createDoctor(req, res, next)
     }
+);
+
+router.patch(
+  "/update-my-profile",
+
+  auth(
+    UserRole.ADMIN,
+    UserRole.DOCTOR,
+    UserRole.PATIENT
+  ),
+
+  fileUploader.upload.single("file"),
+
+  (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    if (req.body.data) {
+      req.body = JSON.parse(req.body.data);
+    }
+
+    return userController.updateMyProfile(
+      req,
+      res,
+      next
+    );
+  }
 );
 
 router.patch(

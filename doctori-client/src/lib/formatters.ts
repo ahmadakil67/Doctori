@@ -1,10 +1,11 @@
-export function getInitials(name: string): string {
-    return name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
+export function getInitials(name?: string): string {
+  if (!name) return "NA";
+
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
 }
 
 export function formatDateTime(date: string | Date): string {

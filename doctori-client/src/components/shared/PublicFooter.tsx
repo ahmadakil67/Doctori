@@ -1,110 +1,136 @@
-import Link from 'next/link';
-import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn, FaFacebook } from 'react-icons/fa';
-import { Mail, Phone, MapPin, Send, Stethoscope } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import Link from "next/link";
+import {
+  ArrowRight,
+  HeartPulse,
+  ShieldCheck,
+  Stethoscope,
+} from "lucide-react";
 
-function PublicFooter() {
+const exploreLinks = [
+  { label: "Home", href: "/" },
+  { label: "Find Doctors", href: "/consultation" },
+  { label: "Specialties", href: "/specialties" },
+  { label: "How It Works", href: "/how-it-works" },
+  { label: "About", href: "/about" },
+];
+
+const accountLinks = [
+  { label: "Log in", href: "/login" },
+  { label: "Create Account", href: "/register" },
+];
+
+export default function PublicFooter() {
   return (
-    <footer className="relative border-t bg-slate-50 dark:bg-slate-950/50">
-      {/* Decorative top bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600" />
-      
-      <div className="container mx-auto px-6 pt-16 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-12">
-          
-          {/* Brand Column */}
-          <div className="lg:col-span-4 space-y-6">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/20 transition-transform duration-300 group-hover:scale-105 group-hover:shadow-blue-500/30">
-            <Stethoscope size={22} className="transition-transform duration-300 group-hover:rotate-12" />
-          </div>
-              <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                Doctori<span className="text-blue-600">.</span>
-              </span>
+    <footer className="border-t border-slate-200 bg-slate-950 text-white dark:border-slate-800">
+      {/* Main Footer */}
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-12">
+
+          {/* Brand */}
+          <div className="lg:col-span-5">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-3"
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-600/20">
+                <Stethoscope className="h-5 w-5" />
+              </div>
+
+              <div>
+                <p className="text-xl font-bold tracking-tight">
+                  Doctori
+                </p>
+
+                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500">
+                  Smart Healthcare
+                </p>
+              </div>
             </Link>
-            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed max-w-sm">
-              Empowering patients with world-class healthcare technology. Connect with top-rated specialists and manage your health journey seamlessly.
+
+            <p className="mt-6 max-w-md text-sm leading-7 text-slate-400">
+              Doctori is designed to make healthcare discovery simpler —
+              helping patients explore specialties, find doctors, and continue
+              their care journey through one connected platform.
             </p>
-            <div className="flex gap-3">
-              {[FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn].map((Icon, i) => (
-                <Button key={i} variant="outline" size="icon" className="rounded-full w-9 h-9 border-slate-200 hover:border-blue-500 hover:text-blue-600 transition-all">
-                  <Icon className="w-4 h-4" />
-                </Button>
-              ))}
-            </div>
+
+            <Link
+              href="/consultation"
+              className="group mt-7 inline-flex items-center gap-2 text-sm font-semibold text-blue-400 transition hover:text-blue-300"
+            >
+              Find a Doctor
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
           </div>
 
-          {/* Links Columns */}
-          <div className="lg:col-span-2">
-            <h3 className="font-bold text-slate-900 dark:text-white mb-6 uppercase text-xs tracking-widest">Platform</h3>
-            <ul className="space-y-4">
-              {['Home', 'About Us', 'Our Doctors', 'Services', 'Contact'].map((item) => (
-                <li key={item}>
-                  <Link href="#" className="text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-500 transition-colors">
-                    {item}
+          {/* Explore */}
+          <div className="lg:col-span-3 lg:col-start-7">
+            <h3 className="text-sm font-semibold text-white">
+              Explore
+            </h3>
+
+            <ul className="mt-5 space-y-3.5">
+              {exploreLinks.map((item) => (
+                <li key={item.label}>
+                  <Link
+                    href={item.href}
+                    className="text-sm text-slate-400 transition hover:text-white"
+                  >
+                    {item.label}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="lg:col-span-2">
-            <h3 className="font-bold text-slate-900 dark:text-white mb-6 uppercase text-xs tracking-widest">Support</h3>
-            <ul className="space-y-4">
-              {['Help Center', 'FAQ', 'Privacy Policy', 'Terms of Service', 'Cookie Policy'].map((item) => (
-                <li key={item}>
-                  <Link href="#" className="text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-500 transition-colors">
-                    {item}
+          {/* Account */}
+          <div className="lg:col-span-3">
+            <h3 className="text-sm font-semibold text-white">
+              Account
+            </h3>
+
+            <ul className="mt-5 space-y-3.5">
+              {accountLinks.map((item) => (
+                <li key={item.label}>
+                  <Link
+                    href={item.href}
+                    className="text-sm text-slate-400 transition hover:text-white"
+                  >
+                    {item.label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
 
-          {/* Newsletter / Contact Column */}
-          <div className="lg:col-span-4 space-y-6">
-            <h3 className="font-bold text-slate-900 dark:text-white mb-6 uppercase text-xs tracking-widest">Stay Updated</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Subscribe to get the latest health tips and platform updates.
-            </p>
-            <div className="flex gap-2">
-              <Input 
-                placeholder="Email address" 
-                className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl focus-visible:ring-blue-600"
-              />
-              <Button className="rounded-xl bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20">
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
-            <div className="pt-4 space-y-3">
-              <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-                <MapPin className="w-4 h-4 text-blue-600" />
-                <span>123 Medical Lane, Health City, HC 12345</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-                <Mail className="w-4 h-4 text-blue-600" />
-                <span>contact@doctori.com</span>
-              </div>
+            <div className="mt-7 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+              <HeartPulse className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" />
+
+              <p className="text-xs leading-5 text-slate-400">
+                Looking for care? Browse available doctors and medical
+                specialties on Doctori.
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-tighter">
-            &copy; {new Date().getFullYear()} Doctori. Built with trust for your health.
-          </p>
-          <div className="flex items-center gap-6">
-             <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Systems Operational</span>
-             </div>
+        {/* Bottom */}
+        <div className="mt-14 border-t border-white/10 pt-7">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+
+            <p className="text-xs text-slate-500">
+              © {new Date().getFullYear()} Doctori. All rights reserved.
+            </p>
+
+            <div className="flex max-w-2xl items-start gap-2.5 md:text-right">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+
+              <p className="text-xs leading-5 text-slate-500">
+                Doctori supports healthcare discovery and does not replace
+                professional medical diagnosis, treatment, or emergency care.
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </footer>
   );
 }
-
-export default PublicFooter;

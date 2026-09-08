@@ -1,80 +1,150 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { usePathname } from "next/navigation";
 
-import { Bell, Menu, Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  Menu,
+} from "lucide-react";
+
+import {
+  Button,
+} from "@/components/ui/button";
+
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
 import DashboardMobileSidebar from "./DashboardMobileSidebar";
+import UserDropdown from "./UserDropdown";
+
 import { UserInfo } from "@/types/user.interface";
 import { NavSection } from "@/types/dashboard.interface";
-import UserDropdown from "./UserDropdown";
 
 interface DashboardNavbarContentProps {
   userInfo: UserInfo;
   navItems?: NavSection[];
   dashboardHome?: string;
 }
+
 const DashboardNavbarContent = ({
   userInfo,
-  navItems,
-  dashboardHome,
+  navItems = [],
+  dashboardHome = "",
 }: DashboardNavbarContentProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const pathname = usePathname();
 
-  useEffect(() => {
-    const checkSmallerScreen = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+  const allItems = navItems.flatMap(
+    (section) => section.items
+  );
 
-    checkSmallerScreen();
-    window.addEventListener("resize", checkSmallerScreen);
+  /*
+   * Find the most specific matching nav item.
+   */
+  const currentItem = allItems
+    .filter((item) => {
+      if (
+        item.href === dashboardHome
+      ) {
+        return pathname === item.href;
+      }
 
-    return () => {
-      window.removeEventListener("resize", checkSmallerScreen);
-    };
-  }, []);
+      return (
+        pathname === item.href ||
+        pathname.startsWith(
+          `${item.href}/`
+        )
+      );
+    })
+    .sort(
+      (a, b) =>
+        b.href.length -
+        a.href.length
+    )[0];
+
+  const pageTitle =
+    currentItem?.title ||
+    "Dashboard";
+
+  const roleLabel =
+    userInfo.role === "PATIENT"
+      ? "Patient Portal"
+      : userInfo.role === "DOCTOR"
+        ? "Doctor Portal"
+        : userInfo.role === "ADMIN"
+          ? "Admin Portal"
+          : "Dashboard";
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
-      <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-6">
-        {/* Mobile Menu Toggle */}
-        <Sheet open={isMobile && isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="outline" size="icon">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          {/* Hide the overlay on medium and larger screens */}
-          <SheetContent side="left" className="w-64 p-0">
-            <DashboardMobileSidebar
-              userInfo={userInfo}
-              navItems={navItems || []}
-              dashboardHome={dashboardHome || ""}
-            />
-          </SheetContent>
-        </Sheet>
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90">
 
-        {/* Search Bar */}
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input type="search" placeholder="Search..." className="pl-9" />
+      <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-6">
+
+        {/* ===============================
+            LEFT
+        =============================== */}
+
+        <div className="flex min-w-0 items-center gap-3">
+
+          {/* Mobile Navigation */}
+          <Sheet>
+            <SheetTrigger
+              asChild
+              className="md:hidden"
+            >
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 rounded-xl"
+              >
+                <Menu className="h-5 w-5" />
+
+                <span className="sr-only">
+                  Open dashboard navigation
+                </span>
+              </Button>
+            </SheetTrigger>
+
+            <SheetContent
+              side="left"
+              className="w-64 p-0"
+            >
+              <SheetTitle className="sr-only">
+                Dashboard Navigation
+              </SheetTitle>
+
+              <DashboardMobileSidebar
+                userInfo={userInfo}
+                navItems={navItems}
+                dashboardHome={
+                  dashboardHome
+                }
+              />
+            </SheetContent>
+          </Sheet>
+
+          {/* Current Page */}
+          <div className="min-w-0">
+
+            <h1 className="truncate text-base font-bold text-slate-950 sm:text-lg dark:text-white">
+              {pageTitle}
+            </h1>
+
+            <p className="hidden text-xs text-slate-400 sm:block">
+              {roleLabel}
+            </p>
           </div>
         </div>
 
-        {/* Right Side Actions */}
-        <div className="flex items-center gap-2">
-          {/* Notifications */}
-          <Button variant="outline" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />
-          </Button>
+        {/* ===============================
+            RIGHT
+        =============================== */}
 
-          {/* User Dropdown */}
-          <UserDropdown userInfo={userInfo} />
-        </div>
+        <UserDropdown
+          userInfo={userInfo}
+        />
       </div>
     </header>
   );

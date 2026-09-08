@@ -1,14 +1,18 @@
-import { getMyPrescriptions } from "@/services/patient/prescription.services";
+import Link from "next/link";
+import { format } from "date-fns";
 
 import {
+  ArrowRight,
+  CalendarCheck,
   CalendarDays,
   Clock,
   FileText,
+  MapPin,
+  Search,
   Stethoscope,
-  CalendarCheck,
 } from "lucide-react";
 
-import { format } from "date-fns";
+import { getMyPrescriptions } from "@/services/patient/prescription.services";
 
 interface Prescription {
   id: string;
@@ -35,6 +39,7 @@ interface Prescription {
 
   appointment?: {
     id: string;
+
     status:
       | "SCHEDULED"
       | "INPROGRESS"
@@ -55,241 +60,445 @@ const MyPrescriptionsPage = async () => {
   const result = await getMyPrescriptions();
 
   const prescriptions: Prescription[] =
-    result.data || [];
+    result?.success && Array.isArray(result?.data)
+      ? result.data
+      : [];
+
+  /*
+   * Show most recently created prescriptions first
+   */
+  const sortedPrescriptions = [...prescriptions].sort(
+    (a, b) =>
+      new Date(b.createdAt).getTime() -
+      new Date(a.createdAt).getTime()
+  );
+
+  const now = new Date();
+
+  const upcomingFollowUps = prescriptions.filter(
+    (prescription) =>
+      prescription.followUpDate &&
+      new Date(prescription.followUpDate).getTime() >=
+        now.getTime()
+  ).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold">
-          My Prescriptions
-        </h1>
+      {/* ==================================================
+          HEADER
+      ================================================== */}
 
-        <p className="text-sm text-muted-foreground mt-1">
-          View prescriptions and follow-up instructions
-          from your doctors
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-blue-600">
+            Medical Records
+          </p>
+
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 dark:text-white">
+            My Prescriptions
+          </h1>
+
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+            Review prescriptions and follow-up instructions
+            provided by your doctors.
+          </p>
+        </div>
+
+        <Link
+          href="/consultation"
+          className="inline-flex h-11 w-fit items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+        >
+          <Search className="h-4 w-4" />
+          Find a Doctor
+        </Link>
       </div>
 
-      {/* Error */}
-      {!result.success && (
-        <div className="border border-red-200 bg-red-50 text-red-600 rounded-lg p-4">
-          {result.message}
+      {/* ==================================================
+          ERROR
+      ================================================== */}
+
+      {!result?.success && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
+          {result?.message ||
+            "Unable to load your prescriptions."}
         </div>
       )}
 
-      {/* Empty State */}
-      {result.success &&
+      {/* ==================================================
+          SUMMARY
+      ================================================== */}
+
+      {result?.success && prescriptions.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-2">
+
+          <SummaryCard
+            icon={FileText}
+            title="Total Prescriptions"
+            value={prescriptions.length}
+          />
+
+          <SummaryCard
+            icon={CalendarCheck}
+            title="Upcoming Follow-ups"
+            value={upcomingFollowUps}
+          />
+        </div>
+      )}
+
+      {/* ==================================================
+          EMPTY STATE
+      ================================================== */}
+
+      {result?.success &&
         prescriptions.length === 0 && (
-          <div className="border rounded-xl py-16 px-6 text-center">
+          <div className="flex min-h-[380px] flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white px-6 text-center dark:border-slate-700 dark:bg-slate-900">
 
-            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/40">
+              <FileText className="h-7 w-7" />
+            </div>
 
-            <h2 className="font-semibold text-lg">
+            <h2 className="mt-5 text-xl font-bold text-slate-900 dark:text-white">
               No prescriptions yet
             </h2>
 
-            <p className="text-sm text-muted-foreground mt-1">
-              Prescriptions provided by your doctor
-              will appear here.
+            <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
+              Prescriptions provided after your doctor
+              consultations will appear here.
             </p>
+
+            <Link
+              href="/consultation"
+              className="group mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700"
+            >
+              Find a Doctor
+
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
           </div>
         )}
 
-      {/* Prescription List */}
-      <div className="grid gap-5">
-        {prescriptions.map((prescription) => {
+      {/* ==================================================
+          PRESCRIPTION LIST
+      ================================================== */}
 
-          const startDate =
-            prescription.appointment?.schedule
-              ?.startDateTime
-              ? new Date(
-                  prescription.appointment.schedule
-                    .startDateTime
-                )
-              : null;
+      {sortedPrescriptions.length > 0 && (
+        <section>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-slate-950 dark:text-white">
+              Prescription History
+            </h2>
 
-          const endDate =
-            prescription.appointment?.schedule
-              ?.endDateTime
-              ? new Date(
-                  prescription.appointment.schedule
-                    .endDateTime
-                )
-              : null;
+            <p className="mt-1 text-sm text-slate-500">
+              Your most recent prescriptions appear first.
+            </p>
+          </div>
 
-          const followUpDate =
-            prescription.followUpDate
-              ? new Date(prescription.followUpDate)
-              : null;
+          <div className="space-y-5">
 
-          const createdAt = new Date(
-            prescription.createdAt
-          );
+            {sortedPrescriptions.map(
+              (prescription) => {
+                const startDate =
+                  prescription.appointment?.schedule
+                    ?.startDateTime
+                    ? new Date(
+                        prescription.appointment.schedule
+                          .startDateTime
+                      )
+                    : null;
 
-          return (
-            <div
-              key={prescription.id}
-              className="border rounded-xl bg-background overflow-hidden"
-            >
+                const endDate =
+                  prescription.appointment?.schedule
+                    ?.endDateTime
+                    ? new Date(
+                        prescription.appointment.schedule
+                          .endDateTime
+                      )
+                    : null;
 
-              {/* Top Section */}
-              <div className="p-5">
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+                const followUpDate =
+                  prescription.followUpDate
+                    ? new Date(
+                        prescription.followUpDate
+                      )
+                    : null;
 
-                  {/* Doctor Info */}
-                  <div className="flex items-center gap-4">
+                const createdAt = new Date(
+                  prescription.createdAt
+                );
 
-                    {prescription.doctor?.profilePhoto ? (
-                      <img
-                        src={
-                          prescription.doctor.profilePhoto
-                        }
-                        alt={
-                          prescription.doctor.name
-                        }
-                        className="h-14 w-14 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center">
-                        <Stethoscope className="h-6 w-6" />
+                const isUpcomingFollowUp =
+                  followUpDate &&
+                  followUpDate.getTime() >=
+                    now.getTime();
+
+                return (
+                  <article
+                    key={prescription.id}
+                    className="overflow-hidden rounded-3xl border border-slate-200 bg-white transition-all hover:border-blue-200 hover:shadow-lg hover:shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900"
+                  >
+
+                    {/* ==================================
+                        DOCTOR + APPOINTMENT
+                    ================================== */}
+
+                    <div className="p-5 sm:p-6">
+
+                      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+
+                        {/* Doctor */}
+                        <div className="flex min-w-0 gap-4">
+
+                          {prescription.doctor
+                            ?.profilePhoto ? (
+                            <img
+                              src={
+                                prescription.doctor
+                                  .profilePhoto
+                              }
+                              alt={
+                                prescription.doctor
+                                  .name
+                              }
+                              className="h-16 w-16 shrink-0 rounded-2xl object-cover ring-1 ring-slate-100 dark:ring-slate-800"
+                            />
+                          ) : (
+                            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/40">
+                              <Stethoscope className="h-6 w-6" />
+                            </div>
+                          )}
+
+                          <div className="min-w-0">
+
+                            <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+                              Prescribed by
+                            </p>
+
+                            <h3 className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
+                              Dr.{" "}
+                              {prescription.doctor
+                                ?.name ||
+                                "Unknown Doctor"}
+                            </h3>
+
+                            <p className="mt-1 text-sm text-slate-500">
+                              {prescription.doctor
+                                ?.designation ||
+                                "Doctor"}
+                            </p>
+
+                            {prescription.doctor
+                              ?.currentWorkingPlace && (
+                              <div className="mt-2 flex items-start gap-1.5 text-xs text-slate-400">
+
+                                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+
+                                <span>
+                                  {
+                                    prescription
+                                      .doctor
+                                      .currentWorkingPlace
+                                  }
+                                </span>
+                              </div>
+                            )}
+
+                            {prescription.doctor
+                              ?.qualification && (
+                              <p className="mt-2 text-xs text-slate-400">
+                                {
+                                  prescription
+                                    .doctor
+                                    .qualification
+                                }
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Appointment */}
+                        <div className="space-y-2 lg:min-w-[250px]">
+
+                          {startDate && (
+                            <>
+                              <div className="flex items-center gap-2.5 text-sm text-slate-700 dark:text-slate-300">
+
+                                <CalendarDays className="h-4 w-4 shrink-0 text-blue-600" />
+
+                                <span className="font-medium">
+                                  {format(
+                                    startDate,
+                                    "EEE, MMM d, yyyy"
+                                  )}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2.5 text-sm text-slate-500">
+
+                                <Clock className="h-4 w-4 shrink-0" />
+
+                                <span>
+                                  {format(
+                                    startDate,
+                                    "h:mm a"
+                                  )}
+
+                                  {endDate &&
+                                    ` – ${format(
+                                      endDate,
+                                      "h:mm a"
+                                    )}`}
+                                </span>
+                              </div>
+                            </>
+                          )}
+
+                          <p className="pt-1 text-xs text-slate-400">
+                            Prescription created{" "}
+                            {format(
+                              createdAt,
+                              "MMM d, yyyy"
+                            )}
+                          </p>
+                        </div>
                       </div>
-                    )}
-
-                    <div>
-                      <h2 className="font-semibold text-lg">
-                        Dr.{" "}
-                        {prescription.doctor?.name ||
-                          "Unknown Doctor"}
-                      </h2>
-
-                      <p className="text-sm text-muted-foreground">
-                        {prescription.doctor
-                          ?.designation || "Doctor"}
-                      </p>
-
-                      {prescription.doctor
-                        ?.currentWorkingPlace && (
-                        <p className="text-sm text-muted-foreground">
-                          {
-                            prescription.doctor
-                              .currentWorkingPlace
-                          }
-                        </p>
-                      )}
-
-                      {prescription.doctor
-                        ?.qualification && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {
-                            prescription.doctor
-                              .qualification
-                          }
-                        </p>
-                      )}
                     </div>
-                  </div>
 
-                  {/* Appointment Info */}
-                  <div className="space-y-2">
+                    {/* ==================================
+                        INSTRUCTIONS
+                    ================================== */}
 
-                    {startDate && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                    <div className="border-t border-slate-100 px-5 py-5 sm:px-6 dark:border-slate-800">
 
-                        <span>
-                          {format(
-                            startDate,
-                            "EEEE, MMMM d, yyyy"
+                      <div className="mb-3 flex items-center gap-2">
+
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40">
+                          <FileText className="h-4 w-4" />
+                        </div>
+
+                        <div>
+                          <h4 className="font-semibold text-slate-900 dark:text-white">
+                            Prescription Instructions
+                          </h4>
+
+                          <p className="text-xs text-slate-500">
+                            Instructions provided by your doctor
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-950/50">
+
+                        <p className="whitespace-pre-line text-sm leading-7 text-slate-700 dark:text-slate-300">
+                          {prescription.instructions ||
+                            "No additional instructions provided."}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* ==================================
+                        FOLLOW-UP
+                    ================================== */}
+
+                    {followUpDate && (
+                      <div
+                        className={`border-t px-5 py-4 sm:px-6 dark:border-slate-800 ${
+                          isUpcomingFollowUp
+                            ? "border-blue-100 bg-blue-50/60 dark:bg-blue-950/20"
+                            : "border-slate-100 bg-slate-50/60 dark:bg-slate-950/30"
+                        }`}
+                      >
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+
+                          <div className="flex items-center gap-3">
+
+                            <CalendarCheck
+                              className={`h-5 w-5 ${
+                                isUpcomingFollowUp
+                                  ? "text-blue-600"
+                                  : "text-slate-400"
+                              }`}
+                            />
+
+                            <div>
+                              <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+                                Follow-up
+                              </p>
+
+                              <p className="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                {format(
+                                  followUpDate,
+                                  "EEEE, MMMM d, yyyy"
+                                )}
+                              </p>
+                            </div>
+                          </div>
+
+                          {isUpcomingFollowUp && (
+                            <span className="w-fit rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/50 dark:text-blue-400">
+                              Upcoming
+                            </span>
                           )}
-                        </span>
+                        </div>
                       </div>
                     )}
 
-                    {startDate && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
+                    {/* ==================================
+                        SMALL FOOTER
+                    ================================== */}
 
-                        <span>
-                          {format(
-                            startDate,
-                            "h:mm a"
-                          )}
+                    <div className="border-t border-slate-100 px-5 py-3 sm:px-6 dark:border-slate-800">
 
-                          {endDate &&
-                            ` - ${format(
-                              endDate,
-                              "h:mm a"
-                            )}`}
-                        </span>
-                      </div>
-                    )}
-
-                    <p className="text-xs text-muted-foreground">
-                      Prescribed{" "}
-                      {format(
-                        createdAt,
-                        "MMM d, yyyy"
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Prescription Instructions */}
-              <div className="border-t p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <FileText className="h-5 w-5" />
-
-                  <h3 className="font-semibold">
-                    Prescription Instructions
-                  </h3>
-                </div>
-
-                <div className="rounded-lg bg-muted/50 p-4">
-                  <p className="text-sm leading-7 whitespace-pre-line">
-                    {prescription.instructions}
-                  </p>
-                </div>
-              </div>
-
-              {/* Follow Up */}
-              {followUpDate && (
-                <div className="border-t px-5 py-4 bg-muted/20">
-
-                  <div className="flex items-center gap-2">
-
-                    <CalendarCheck className="h-4 w-4 text-muted-foreground" />
-
-                    <span className="text-sm font-medium">
-                      Follow-up:
-                    </span>
-
-                    <span className="text-sm">
-                      {format(
-                        followUpDate,
-                        "EEEE, MMMM d, yyyy"
-                      )}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Footer */}
-              <div className="border-t px-5 py-3">
-
-                <p className="text-xs text-muted-foreground">
-                  Prescription ID: {prescription.id}
-                </p>
-
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                      <p className="truncate text-xs text-slate-400">
+                        Prescription ID:{" "}
+                        {prescription.id}
+                      </p>
+                    </div>
+                  </article>
+                );
+              }
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 };
 
 export default MyPrescriptionsPage;
+
+/* =========================================================
+   SUMMARY CARD
+========================================================= */
+
+function SummaryCard({
+  icon: Icon,
+  title,
+  value,
+}: {
+  icon: typeof FileText;
+  title: string;
+  value: number;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+
+      <div className="flex items-center justify-between">
+
+        <div>
+          <p className="text-sm text-slate-500">
+            {title}
+          </p>
+
+          <p className="mt-2 text-3xl font-bold text-slate-950 dark:text-white">
+            {value}
+          </p>
+        </div>
+
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40">
+          <Icon className="h-5 w-5" />
+        </div>
+      </div>
+    </div>
+  );
+}

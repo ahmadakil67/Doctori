@@ -159,6 +159,83 @@ const getAllFromDB = async (params: any, options: IOptions) => {
   };
 };
 
+const getAllAdminsFromDB = async (params: any, options: IOptions) => {
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelper.calculatePagination(options);
+
+  const { searchTerm, email, contactNumber } = params;
+
+  const andConditions: Prisma.AdminWhereInput[] = [];
+
+  if (searchTerm) {
+    andConditions.push({
+      OR: [
+        {
+          name: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        },
+        {
+          email: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        },
+        {
+          contactNumber: {
+            contains: searchTerm,
+          },
+        },
+      ],
+    });
+  }
+
+  if (email) {
+    andConditions.push({
+      email: {
+        contains: email,
+        mode: "insensitive",
+      },
+    });
+  }
+
+  if (contactNumber) {
+    andConditions.push({
+      contactNumber: {
+        contains: contactNumber,
+      },
+    });
+  }
+
+  const whereConditions: Prisma.AdminWhereInput =
+    andConditions.length > 0
+      ? { AND: andConditions }
+      : {};
+
+  const result = await prisma.admin.findMany({
+    where: whereConditions,
+    skip,
+    take: limit,
+    orderBy: {
+      [sortBy]: sortOrder,
+    },
+  });
+
+  const total = await prisma.admin.count({
+    where: whereConditions,
+  });
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: result,
+  };
+};
+
 const getMyProfile = async (user: IJWTPayload) => {
   const userInfo = await prisma.user.findUniqueOrThrow({
     where: {
@@ -202,6 +279,99 @@ const getMyProfile = async (user: IJWTPayload) => {
   };
 };
 
+const updateMyProfile = async (
+  user: IJWTPayload,
+  req: Request
+) => {
+  const userInfo =
+    await prisma.user.findUniqueOrThrow({
+      where: {
+        email: user.email,
+        status: UserStatus.ACTIVE,
+      },
+    });
+
+  const payload: any = {
+    ...req.body,
+  };
+
+  /*
+   * Email belongs to the account identity.
+   * Do not update it from the profile form.
+   */
+  delete payload.email;
+  delete payload.id;
+  delete payload.role;
+  delete payload.status;
+  delete payload.createdAt;
+  delete payload.updatedAt;
+
+  /*
+   * New profile picture
+   */
+  if (req.file) {
+    const uploadResult =
+      await fileUploader.uploadToCloudinary(
+        req.file
+      );
+
+    if (uploadResult?.secure_url) {
+      payload.profilePhoto =
+        uploadResult.secure_url;
+    }
+  }
+
+  /*
+   * FormData sends numeric values as strings.
+   */
+  if (
+    payload.experience !== undefined &&
+    payload.experience !== ""
+  ) {
+    payload.experience =
+      Number(payload.experience);
+  }
+
+  if (
+    payload.appointmentFee !== undefined &&
+    payload.appointmentFee !== ""
+  ) {
+    payload.appointmentFee =
+      Number(payload.appointmentFee);
+  }
+
+  if (userInfo.role === UserRole.PATIENT) {
+    return await prisma.patient.update({
+      where: {
+        email: userInfo.email,
+      },
+      data: payload,
+    });
+  }
+
+  if (userInfo.role === UserRole.DOCTOR) {
+    return await prisma.doctor.update({
+      where: {
+        email: userInfo.email,
+      },
+      data: payload,
+    });
+  }
+
+  if (userInfo.role === UserRole.ADMIN) {
+    return await prisma.admin.update({
+      where: {
+        email: userInfo.email,
+      },
+      data: payload,
+    });
+  }
+
+  throw new Error(
+    "Unable to determine user profile type"
+  );
+};
+
 const changeProfileStatus = async (
   id: string,
   payload: { status: UserStatus },
@@ -229,4 +399,6 @@ export const userService = {
   getAllFromDB,
   getMyProfile,
   changeProfileStatus,
+  updateMyProfile,
+  getAllAdminsFromDB,
 };

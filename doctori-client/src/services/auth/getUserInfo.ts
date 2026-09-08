@@ -1,54 +1,64 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use server"
+
+"use server";
 
 import { serverFetch } from "@/lib/server-fetch";
 import { UserInfo } from "@/types/user.interface";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import { getCookie } from "./tokenHandlers";
 
 export const getUserInfo = async (): Promise<UserInfo | any> => {
-    let userInfo: UserInfo | any;
-    try {
+  try {
+    const response = await serverFetch.get("/user/me", {
+      cache: "force-cache",
+      next: {
+        tags: ["user-info"],
+      },
+    });
 
-        const response = await serverFetch.get("/auth/me", {
-            cache: "force-cache",
-            next: { tags: ["user-info"] }
-        })
+    const result = await response.json();
 
-        const result = await response.json();
-
-        if (result.success) {
-            const accessToken = await getCookie("accessToken");
-
-            if (!accessToken) {
-                throw new Error("No access token found");
-            }
-
-            const verifiedToken = jwt.verify(accessToken, process.env.JWT_SECRET as string) as JwtPayload;
-
-            userInfo = {
-                name: verifiedToken.name || "Unknown User",
-                email: verifiedToken.email,
-                role: verifiedToken.role,
-            }
-        }
-
-        userInfo = {
-            name: result.data.admin?.name || result.data.doctor?.name || result.data.patient?.name || result.data.name || "Unknown User",
-            ...result.data
-        };
-
-
-
-        return userInfo;
-    } catch (error: any) {
-        console.log(error);
-        return {
-            id: "",
-            name: "Unknown User",
-            email: "",
-            role: "PATIENT",
-        };
+    if (!result.success || !result.data) {
+      throw new Error(
+        result.message || "Unable to fetch user information"
+      );
     }
 
-}
+    const profile = result.data;
+
+    /*
+     * /user/me returns the role profile in flattened form.
+     *
+     * We keep the top-level values and also create the
+     * nested patient / doctor / admin object because the
+     * existing UI components expect those properties.
+     */
+    return {
+      ...profile,
+
+      name: profile.name || "Unknown User",
+
+      patient:
+        profile.role === "PATIENT"
+          ? profile
+          : undefined,
+
+      doctor:
+        profile.role === "DOCTOR"
+          ? profile
+          : undefined,
+
+      admin:
+        profile.role === "ADMIN"
+          ? profile
+          : undefined,
+    };
+  } catch (error: any) {
+    console.log(error);
+
+    return {
+      id: "",
+      name: "Unknown User",
+      email: "",
+      role: "PATIENT",
+    };
+  }
+};

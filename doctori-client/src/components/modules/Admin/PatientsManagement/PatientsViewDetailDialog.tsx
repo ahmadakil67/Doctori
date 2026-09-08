@@ -1,28 +1,40 @@
-import InfoRow from "@/components/shared/InoRow";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+"use client";
+
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
+
 import { Badge } from "@/components/ui/badge";
+
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { formatDateTime, getInitials } from "@/lib/formatters";
+
+import {
+  formatDateTime,
+  getInitials,
+} from "@/lib/formatters";
+
 import { IPatient } from "@/types/patient.interface";
+
 import {
   Activity,
-  Calendar,
+  CalendarDays,
   Droplet,
   FileText,
-  Heart,
+  HeartPulse,
   Mail,
   MapPin,
   Phone,
-  User,
+  UserRound,
 } from "lucide-react";
 
-interface IPatientViewDialogProps {
+interface Props {
   open: boolean;
   onClose: () => void;
   patient: IPatient | null;
@@ -32,270 +44,403 @@ const PatientViewDetailDialog = ({
   open,
   onClose,
   patient,
-}: IPatientViewDialogProps) => {
+}: Props) => {
   if (!patient) {
     return null;
   }
 
-  const healthData = patient.patientHealthData;
+  const healthData =
+    patient.patientHealthData;
+
+  const formatEnum = (
+    value?: string | null
+  ) => {
+    if (!value) return null;
+
+    return value
+      .replace(/_/g, " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (char) =>
+        char.toUpperCase()
+      );
+  };
+
+  const formatDateOnly = (
+    value?: string | Date | null
+  ) => {
+    if (!value) {
+      return "Not provided";
+    }
+
+    const date =
+      new Date(value);
+
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
+      return "Not provided";
+    }
+
+    return date.toLocaleDateString(
+      "en-US",
+      {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }
+    );
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="min-w-5xl max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-4">
-          <DialogTitle>Patient Profile</DialogTitle>
+    <Dialog
+      open={open}
+      onOpenChange={(
+        nextOpen
+      ) => {
+        if (!nextOpen) {
+          onClose();
+        }
+      }}
+    >
+      <DialogContent className="flex max-h-[92vh] max-w-4xl flex-col overflow-hidden rounded-3xl p-0">
+
+        <DialogHeader className="border-b border-slate-100 px-6 py-5 dark:border-slate-800">
+          <DialogTitle>
+            Patient Profile
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 pb-6">
-          {/* Patient Profile Header */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg mb-6">
-            <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
-              <AvatarImage
-                src={patient?.profilePhoto || ""}
-                alt={patient?.name}
-              />
-              <AvatarFallback className="text-2xl">
-                {getInitials(patient?.name || "")}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 text-center sm:text-left">
-              <h2 className="text-3xl font-bold mb-1">{patient?.name}</h2>
-              <p className="text-muted-foreground mb-2 flex items-center justify-center sm:justify-start gap-2">
-                <Mail className="h-4 w-4" />
-                {patient?.email}
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                <Badge
-                  variant={patient?.isDeleted ? "destructive" : "default"}
-                  className="text-sm"
-                >
-                  {patient?.isDeleted ? "Inactive" : "Active"}
-                </Badge>
+        <div className="flex-1 overflow-y-auto">
+
+          {/* =====================================
+              HERO
+          ===================================== */}
+
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-7 text-white">
+
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+
+              <Avatar className="h-24 w-24 border-4 border-white/30 shadow-lg">
+
+                <AvatarImage
+                  src={
+                    patient.profilePhoto ||
+                    ""
+                  }
+                  alt={
+                    patient.name
+                  }
+                  className="object-cover"
+                />
+
+                <AvatarFallback className="bg-white text-xl font-bold text-blue-700">
+                  {getInitials(
+                    patient.name
+                  )}
+                </AvatarFallback>
+              </Avatar>
+
+              <div className="min-w-0 flex-1">
+
+                <h2 className="text-2xl font-bold sm:text-3xl">
+                  {patient.name}
+                </h2>
+
+                <div className="mt-2 flex items-center gap-2 text-sm text-blue-100">
+                  <Mail className="h-4 w-4" />
+                  {patient.email}
+                </div>
+
+                <div className="mt-3">
+                  <Badge className="bg-white/15 text-white hover:bg-white/15">
+                    {patient.isDeleted
+                      ? "Inactive"
+                      : "Active"}
+                  </Badge>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Information Grid */}
-          <div className="space-y-6">
-            {/* Contact Information */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Phone className="h-5 w-5 text-purple-600" />
-                <h3 className="font-semibold text-lg">Contact Information</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/50 p-4 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <Phone className="h-4 w-4 mt-1 text-muted-foreground" />
-                  <InfoRow
-                    label="Contact Number"
-                    value={patient?.contactNumber || "Not provided"}
-                  />
-                </div>
-                <div className="flex items-start gap-3">
-                  <Mail className="h-4 w-4 mt-1 text-muted-foreground" />
-                  <InfoRow
-                    label="Email"
-                    value={patient?.email || "Not provided"}
-                  />
-                </div>
-                <div className="flex items-start gap-3 md:col-span-2">
-                  <MapPin className="h-4 w-4 mt-1 text-muted-foreground" />
-                  <InfoRow
-                    label="Address"
-                    value={patient?.address || "Not provided"}
-                  />
-                </div>
-              </div>
-            </div>
+          <div className="space-y-8 p-6">
 
-            {/* Health Data */}
+            {/* =====================================
+                CONTACT
+            ===================================== */}
+
+            <Section
+              icon={Phone}
+              title="Contact Information"
+            >
+              <InfoGrid>
+                <InfoItem
+                  icon={Phone}
+                  label="Contact Number"
+                  value={
+                    patient.contactNumber
+                  }
+                />
+
+                <InfoItem
+                  icon={Mail}
+                  label="Email"
+                  value={
+                    patient.email
+                  }
+                />
+
+                <InfoItem
+                  icon={MapPin}
+                  label="Address"
+                  value={
+                    patient.address
+                  }
+                />
+              </InfoGrid>
+            </Section>
+
+            {/* =====================================
+                HEALTH
+            ===================================== */}
+
             {healthData && (
-              <>
-                <Separator />
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Heart className="h-5 w-5 text-red-600" />
-                    <h3 className="font-semibold text-lg">
-                      Health Information
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/50 p-4 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <User className="h-4 w-4 mt-1 text-muted-foreground" />
-                      <InfoRow
-                        label="Gender"
-                        value={
-                          healthData.gender
-                            ? healthData.gender.charAt(0) +
-                              healthData.gender.slice(1).toLowerCase()
-                            : "Not specified"
-                        }
-                      />
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Calendar className="h-4 w-4 mt-1 text-muted-foreground" />
-                      <InfoRow
-                        label="Date of Birth"
-                        value={formatDateTime(healthData.dateOfBirth || "")}
-                      />
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Droplet className="h-4 w-4 mt-1 text-muted-foreground" />
-                      <InfoRow
-                        label="Blood Group"
-                        value={
-                          healthData.bloodGroup?.replace(/_/g, " ") ||
-                          "Not specified"
-                        }
-                      />
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Activity className="h-4 w-4 mt-1 text-muted-foreground" />
-                      <InfoRow
-                        label="Height"
-                        value={healthData.height || "Not specified"}
-                      />
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Activity className="h-4 w-4 mt-1 text-muted-foreground" />
-                      <InfoRow
-                        label="Weight"
-                        value={healthData.weight || "Not specified"}
-                      />
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Heart className="h-4 w-4 mt-1 text-muted-foreground" />
-                      <InfoRow
-                        label="Marital Status"
-                        value={
-                          healthData.maritalStatus
-                            ? healthData.maritalStatus.charAt(0) +
-                              healthData.maritalStatus.slice(1).toLowerCase()
-                            : "Not specified"
-                        }
-                      />
-                    </div>
-                    <div className="flex items-start gap-3 md:col-span-2">
-                      <Activity className="h-4 w-4 mt-1 text-muted-foreground" />
-                      <div className="flex-1">
-                        <div className="text-xs text-muted-foreground mb-1">
-                          Medical Conditions
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {healthData.hasAllergies && (
-                            <Badge variant="outline" className="text-xs">
-                              Allergies
-                            </Badge>
-                          )}
-                          {healthData.hasDiabetes && (
-                            <Badge variant="outline" className="text-xs">
-                              Diabetes
-                            </Badge>
-                          )}
-                          {healthData.smokingStatus && (
-                            <Badge variant="outline" className="text-xs">
-                              Smoker
-                            </Badge>
-                          )}
-                          {healthData.hasPastSurgeries && (
-                            <Badge variant="outline" className="text-xs">
-                              Past Surgeries
-                            </Badge>
-                          )}
-                          {healthData.recentAnxiety && (
-                            <Badge variant="outline" className="text-xs">
-                              Recent Anxiety
-                            </Badge>
-                          )}
-                          {healthData.recentDepression && (
-                            <Badge variant="outline" className="text-xs">
-                              Recent Depression
-                            </Badge>
-                          )}
-                          {!healthData.hasAllergies &&
-                            !healthData.hasDiabetes &&
-                            !healthData.smokingStatus &&
-                            !healthData.hasPastSurgeries &&
-                            !healthData.recentAnxiety &&
-                            !healthData.recentDepression && (
-                              <span className="text-sm text-muted-foreground">
-                                No major conditions
-                              </span>
-                            )}
-                        </div>
-                      </div>
-                    </div>
+              <Section
+                icon={HeartPulse}
+                title="Health Information"
+              >
+                <InfoGrid>
+                  <InfoItem
+                    icon={UserRound}
+                    label="Gender"
+                    value={
+                      formatEnum(
+                        healthData.gender
+                      )
+                    }
+                  />
+
+                  <InfoItem
+                    icon={CalendarDays}
+                    label="Date of Birth"
+                    value={
+                      formatDateOnly(
+                        healthData.dateOfBirth
+                      )
+                    }
+                  />
+
+                  <InfoItem
+                    icon={Droplet}
+                    label="Blood Group"
+                    value={
+                      formatEnum(
+                        healthData.bloodGroup
+                      )
+                    }
+                  />
+
+                  <InfoItem
+                    icon={Activity}
+                    label="Height"
+                    value={
+                      healthData.height
+                    }
+                  />
+
+                  <InfoItem
+                    icon={Activity}
+                    label="Weight"
+                    value={
+                      healthData.weight
+                    }
+                  />
+
+                  <InfoItem
+                    icon={HeartPulse}
+                    label="Marital Status"
+                    value={
+                      formatEnum(
+                        healthData.maritalStatus
+                      )
+                    }
+                  />
+
+                  {healthData.smokingStatus && (
+                    <InfoItem
+                      icon={
+                        HeartPulse
+                      }
+                      label="Smoking Status"
+                      value={
+                        typeof healthData.smokingStatus ===
+                        "string"
+                          ? formatEnum(
+                              healthData.smokingStatus
+                            )
+                          : healthData.smokingStatus
+                            ? "Reported"
+                            : "Not reported"
+                      }
+                    />
+                  )}
+                </InfoGrid>
+
+                {/* Health flags */}
+                <div className="mt-4">
+
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
+                    Reported Health Information
+                  </p>
+
+                  <div className="flex flex-wrap gap-2">
+
+                    {healthData.hasAllergies && (
+                      <HealthBadge>
+                        Allergies
+                      </HealthBadge>
+                    )}
+
+                    {healthData.hasDiabetes && (
+                      <HealthBadge>
+                        Diabetes
+                      </HealthBadge>
+                    )}
+
+                    {healthData.hasPastSurgeries && (
+                      <HealthBadge>
+                        Past Surgeries
+                      </HealthBadge>
+                    )}
+
+                    {healthData.recentAnxiety && (
+                      <HealthBadge>
+                        Recent Anxiety
+                      </HealthBadge>
+                    )}
+
+                    {healthData.recentDepression && (
+                      <HealthBadge>
+                        Recent Depression
+                      </HealthBadge>
+                    )}
+
+                    {!healthData.hasAllergies &&
+                      !healthData.hasDiabetes &&
+                      !healthData.hasPastSurgeries &&
+                      !healthData.recentAnxiety &&
+                      !healthData.recentDepression && (
+                        <p className="text-sm text-slate-400">
+                          No additional health flags reported.
+                        </p>
+                      )}
                   </div>
                 </div>
-              </>
+              </Section>
             )}
 
-            {/* Medical Reports */}
-            {patient.medicalReport && patient.medicalReport.length > 0 && (
-              <>
-                <Separator />
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <FileText className="h-5 w-5 text-green-600" />
-                    <h3 className="font-semibold text-lg">Medical Reports</h3>
-                  </div>
+            {/* =====================================
+                REPORTS
+            ===================================== */}
+
+            {patient.medicalReport &&
+              patient.medicalReport
+                .length > 0 && (
+                <Section
+                  icon={
+                    FileText
+                  }
+                  title="Medical Reports"
+                >
                   <div className="space-y-2">
-                    {patient.medicalReport.map((report) => (
-                      <div
-                        key={report.id}
-                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <div className="text-sm font-medium">
-                              {report.reportName}
+
+                    {patient.medicalReport.map(
+                      (report) => (
+                        <div
+                          key={
+                            report.id
+                          }
+                          className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-950/50"
+                        >
+                          <div className="flex items-center gap-3">
+
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 dark:bg-slate-900">
+                              <FileText className="h-4 w-4" />
                             </div>
-                            <div className="text-xs text-muted-foreground">
-                              {formatDateTime(report.createdAt)}
+
+                            <div>
+                              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                {
+                                  report.reportName
+                                }
+                              </p>
+
+                              <p className="mt-1 text-xs text-slate-400">
+                                {formatDateTime(
+                                  report.createdAt
+                                )}
+                              </p>
                             </div>
                           </div>
+
+                          <a
+                            href={
+                              report.reportLink
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm font-semibold text-blue-600 hover:underline"
+                          >
+                            View Report
+                          </a>
                         </div>
-                        <a
-                          href={report.reportLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-600 hover:underline"
-                        >
-                          View Report
-                        </a>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
-                </div>
-              </>
-            )}
+                </Section>
+              )}
 
-            <Separator />
+            {/* =====================================
+                ACCOUNT
+            ===================================== */}
 
-            {/* Personal Information */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <User className="h-5 w-5 text-orange-600" />
-                <h3 className="font-semibold text-lg">Account Information</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/50 p-4 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <Calendar className="h-4 w-4 mt-1 text-muted-foreground" />
-                  <InfoRow
-                    label="Joined On"
-                    value={formatDateTime(patient?.createdAt || "")}
-                  />
-                </div>
-                <div className="flex items-start gap-3">
-                  <Calendar className="h-4 w-4 mt-1 text-muted-foreground" />
-                  <InfoRow
-                    label="Last Updated"
-                    value={formatDateTime(patient?.updatedAt || "")}
-                  />
-                </div>
-              </div>
-            </div>
+            <Section
+              icon={
+                UserRound
+              }
+              title="Account Information"
+            >
+              <InfoGrid>
+                <InfoItem
+                  icon={
+                    CalendarDays
+                  }
+                  label="Joined"
+                  value={
+                    patient.createdAt
+                      ? formatDateTime(
+                          patient.createdAt
+                        )
+                      : null
+                  }
+                />
+
+                <InfoItem
+                  icon={
+                    CalendarDays
+                  }
+                  label="Last Updated"
+                  value={
+                    patient.updatedAt
+                      ? formatDateTime(
+                          patient.updatedAt
+                        )
+                      : null
+                  }
+                />
+              </InfoGrid>
+            </Section>
           </div>
         </div>
       </DialogContent>
@@ -304,3 +449,95 @@ const PatientViewDetailDialog = ({
 };
 
 export default PatientViewDetailDialog;
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function Section({
+  icon: Icon,
+  title,
+  children,
+}: {
+  icon: React.ElementType;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section>
+      <div className="mb-4 flex items-center gap-2">
+
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40">
+          <Icon className="h-4 w-4" />
+        </div>
+
+        <h3 className="font-bold text-slate-900 dark:text-white">
+          {title}
+        </h3>
+      </div>
+
+      {children}
+    </section>
+  );
+}
+
+function InfoGrid({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {children}
+    </div>
+  );
+}
+
+function InfoItem({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value?:
+    | string
+    | number
+    | null;
+}) {
+  return (
+    <div className="flex gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-950/50">
+
+      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+
+      <div className="min-w-0">
+        <p className="text-xs font-medium text-slate-400">
+          {label}
+        </p>
+
+        <p className="mt-1 break-words text-sm font-semibold text-slate-800 dark:text-slate-200">
+          {value === null ||
+          value === undefined ||
+          value === ""
+            ? "Not provided"
+            : value}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function HealthBadge({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Badge
+      variant="outline"
+      className="rounded-full bg-slate-50 px-3 py-1.5 text-xs dark:bg-slate-950"
+    >
+      {children}
+    </Badge>
+  );
+}
