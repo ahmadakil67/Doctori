@@ -251,6 +251,15 @@ Stripe webhook endpoint:
 POST /webhook
 ```
 
+## 🔐 Demo Credentials
+
+For recruiters, reviewers, or developers who want to explore the admin dashboard:
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@admin.com` | `12345678` |
+
+> **Note:** This account is intended for demonstration purposes only. Please avoid deleting or modifying critical test data.
 ---
 
 ## 🚀 Local Development
